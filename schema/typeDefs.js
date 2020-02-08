@@ -15,7 +15,6 @@ const typeDefs = `
 
   type Query {
     hello: String
-    events: [Event] @cypher(statement: "MATCH (e:Event) RETURN e")
     me: String @cypher(statement: "RETURN $cypherParams.currentUserId")
   }
 

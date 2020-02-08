@@ -1,4 +1,4 @@
-const { rule, shield, allow } = require("graphql-shield");
+const { rule, shield, allow, or } = require("graphql-shield");
 
 const isAuthenticated = rule()(async (parent, args, ctx, info) => {
   return ctx.user.username !== null;
@@ -17,22 +17,20 @@ const isSelf = rule({ fragment: "fragment UserID on User { id }" })(
   }
 );
 
-const permissions = shield(
-  {
-    Query: {
-      hello: isAuthenticated
-    },
-    User: {
-      email: isSelf
-    },
-    Event: {
-      image_url: isOwner
-    },
-    Mutation: {
-      login: allow
-    }
+const permissions = shield({
+  Query: {
+    hello: isAuthenticated
   },
-  { fallbackRule: isAuthenticated }
-);
+  User: {
+    email: or(isSelf)
+  },
+  Event: {
+    image_url: allow
+  },
+  Mutation: {
+    "*": isAuthenticated,
+    login: allow
+  }
+});
 
 module.exports = permissions;
