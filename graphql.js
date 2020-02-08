@@ -29,18 +29,20 @@ const server = new ApolloServer({
     if (token) {
       const decoded = jwt.verify(token, process.env.JWT_SECRET || "shhhhh");
       user = decoded.user;
-      console.log(user);
     }
 
     // add neo4j db to context
     let driver;
     if (!driver) {
       driver = neo4j.driver(
-        process.env.NEO4J_URI || "bolt://localhost:7687",
+        process.env.NEO4J_URI,
         neo4j.auth.basic(
-          process.env.NEO4J_USERNAME || "neo4j",
-          process.env.NEO4J_PASSWORD || "letmein"
-        )
+          process.env.NEO4J_USERNAME,
+          process.env.NEO4J_PASSWORD
+        ),
+        {
+          encrypted: "ENCRYPTION_ON"
+        }
       );
     }
     return {

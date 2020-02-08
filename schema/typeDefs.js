@@ -54,6 +54,10 @@ const typeDefs = `
     name: String
   }
 
+  type Tag {
+    name: String
+  }
+
   type Event {
     title: String
     slug: String
@@ -65,6 +69,7 @@ const typeDefs = `
     end_datetime: Float
     venue: [Venue] @relation(name: "HELD_AT", direction: "OUT")
     owners: [User] @relation(name: "OWNS", direction: "IN")
+    involved: [User] @relation(name: "INVOLVED_IN", direction: "IN")
     popularity: Float
       @cypher(statement: """
       MATCH (this)
