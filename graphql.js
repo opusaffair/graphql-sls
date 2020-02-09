@@ -79,7 +79,7 @@ const server = new ApolloServer({
 
 exports.graphqlHandler = server.createHandler({
   cors: {
-    origin: true,
+    origin: "*",
     credentials: true
   }
 });

@@ -6,7 +6,7 @@ const { fetchUser, checkPassword } = require("../utils");
 const resolvers = {
   Query: {
     hello: (obj, params, ctx, info) => "Hello world!",
-    me: (obj, params, { user }) =>
+    me: (obj, params, { user }, info) =>
       user.email ? `Logged in as ${user.email}` : `Not logged in`
   },
   Mutation: {
