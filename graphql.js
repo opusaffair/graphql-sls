@@ -27,17 +27,17 @@ const server = new ApolloServer({
     // schemaTag: "development"
   },
   context: async ({ event, context }) => {
+    console.log("Context Stuff");
     const token =
       event.headers &&
       event.headers.authorization &&
       event.headers.authorization.split(" ")[1];
     var user = { email: null, username: null, id: null, role: [] };
     if (token) {
-      const decoded = await jwt.verify(
-        token,
-        process.env.JWT_SECRET || "shhhhh"
-      );
+      const decoded = jwt.verify(token, process.env.JWT_SECRET || "shhhhh");
       user = decoded.user;
+    } else {
+      console.log("No Token");
     }
 
     // add neo4j db to context
