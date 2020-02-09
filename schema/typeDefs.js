@@ -39,7 +39,6 @@ const typeDefs = `
     involved_in: [Involved]
     involvement: [Involvement]  @relation(name: "INVOLVEMENT", direction: "OUT")
     email: String
-    roles: [Role] @relation(name: "HAS_ROLE", diction: "OUT")
     followedByMe: Boolean @cypher(statement: """
       MATCH (me:User {username: $cypherParams.currentUserId})
       RETURN EXISTS ((me)-[:FOLLOWS]->(this))
