@@ -15,7 +15,19 @@ functions:
       - http:
           path: graphql
           method: post
-          cors: true
+          credentials: true
+          preflightContinue: true
+          cors:
+            origin: "*" # <-- Specify allowed origin
+            headers: # <-- Specify allowed headers
+              - Content-Type
+              - X-Amz-Date
+              - Authorization
+              - X-Api-Key
+              - X-Amz-Security-Token
+              - X-Amz-User-Agent
+              - apollographql-client-name
+              - apollographql-client-version
       - http:
           path: graphql
           method: get
