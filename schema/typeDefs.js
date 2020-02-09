@@ -9,8 +9,8 @@ const typeDefs = `
     enum Role {
       ADMIN
       MODERATOR
+      HOST
       USER
-      OWNER
     }
 
   type Query {
@@ -30,14 +30,16 @@ const typeDefs = `
       SET v.location = point({latitude:v.latitude, longitude:v.longitude})  
       RETURN 'Finished'
     """)
-    login(email: String!): String
+    login(email: String!, password: String!): String
   }
 
   type User {
     username: String!
     _id: ID!
-    involved_in: [Event] @relation(name: "INVOLVED_IN", direction: "OUT")
+    involved_in: [Involved]
+    involvement: [Involvement]  @relation(name: "INVOLVEMENT", direction: "OUT")
     email: String
+    roles: [Role] @relation(name: "HAS_ROLE", diction: "OUT")
     followedByMe: Boolean @cypher(statement: """
       MATCH (me:User {username: $cypherParams.currentUserId})
       RETURN EXISTS ((me)-[:FOLLOWS]->(this))
@@ -57,6 +59,18 @@ const typeDefs = `
     name: String
   }
 
+  type Involved @relation(name: "INVOLVED_IN") {
+    from: User
+    to: Event
+    how: String
+  }
+
+  type Involvement {
+    user: User @relation(name: "INVOLVEMENT", direction: "IN")
+    event: Event @relation(name: "INVOLVEMENT", direction: "OUT")
+    how: String
+  }
+
   type Event {
     title: String
     slug: String
@@ -67,8 +81,13 @@ const typeDefs = `
     other_start_datetime: DateTime @cypher(statement: "Return datetime(this.new_start_datetime)")
     end_datetime: Float
     venue: [Venue] @relation(name: "HELD_AT", direction: "OUT")
+    organizers: [Org] @relation(name: "ORGANIZES", direction: "IN")
+    tags: [Tag] @relation(name: "TAGGED", direction: "IN" )
     owners: [User] @relation(name: "OWNS", direction: "IN")
-    involved: [User] @relation(name: "INVOLVED_IN", direction: "IN")
+    involved: [Involved]
+    involvement: [Involvement]  @relation(name: "INVOLVEMENT", direction: "IN")
+    interested: [User] @relation(name: "INTERESTED_IN", direction: "IN")
+    attending: [User] @relation(name: "ATTENDING", direction: "IN")
     popularity: Float
       @cypher(statement: """
       MATCH (this)

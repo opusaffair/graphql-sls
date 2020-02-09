@@ -3,7 +3,6 @@ const { makeAugmentedSchema } = require("neo4j-graphql-js");
 const { applyMiddleware } = require("graphql-middleware");
 
 const neo4j = require("neo4j-driver");
-const isEmail = require("isemail");
 const permissions = require("./schema/permissions");
 const { typeDefs } = require("./schema/typeDefs");
 const resolvers = require("./schema/resolvers");
@@ -24,8 +23,7 @@ const server = new ApolloServer({
       event.headers &&
       event.headers.authorization &&
       event.headers.authorization.split(" ")[1];
-    // console.log(token);
-    var user = { username: null, role: [] };
+    var user = { email: null, username: null, id: null, role: [] };
     if (token) {
       const decoded = jwt.verify(token, process.env.JWT_SECRET || "shhhhh");
       user = decoded.user;
