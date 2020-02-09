@@ -15,7 +15,8 @@ const typeDefs = `
 
   type Query {
     hello: String
-    me: String @cypher(statement: "RETURN $cypherParams.currentUserId")
+    cypherMe: String @cypher(statement: "RETURN $cypherParams.currentUserId")
+    me: String
   }
 
   type Mutation {

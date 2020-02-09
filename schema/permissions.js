@@ -11,9 +11,6 @@ const isOwner = rule()(async (parent, args, { user }, info) => {
 });
 
 const isAdmin = rule()(async (parent, args, { user }, info) => {
-  console.log(user.roles);
-  console.log(user.roles.includes("ADMIN"));
-  console.log(user.roles.includes("ADMINISTRATOR"));
   return user.roles.includes("ADMIN") || user.roles.includes("ADMINISTRATOR");
 });
 

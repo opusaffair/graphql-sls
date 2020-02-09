@@ -25,7 +25,10 @@ const server = new ApolloServer({
       event.headers.authorization.split(" ")[1];
     var user = { email: null, username: null, id: null, role: [] };
     if (token) {
-      const decoded = jwt.verify(token, process.env.JWT_SECRET || "shhhhh");
+      const decoded = await jwt.verify(
+        token,
+        process.env.JWT_SECRET || "shhhhh"
+      );
       user = decoded.user;
     }
 
