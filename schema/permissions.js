@@ -14,13 +14,11 @@ const isAdmin = rule()(async (parent, args, { user }, info) => {
   return user.roles.includes("ADMIN") || user.roles.includes("ADMINISTRATOR");
 });
 
-const isSelf = rule({ fragment: "fragment UserID on User { id }" })(
-  async (parent, args, ctx, info) => {
-    const idMatch = ctx.user._id === parent._id;
-    const emailMatch = ctx.user.email === parent.email;
-    return idMatch && emailMatch;
-  }
-);
+const isSelf = rule()(async (parent, args, ctx, info) => {
+  const idMatch = ctx.user._id === parent._id;
+  const emailMatch = ctx.user.email === parent.email;
+  return idMatch && emailMatch;
+});
 
 const permissions = shield({
   Query: {

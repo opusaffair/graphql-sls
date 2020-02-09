@@ -18,6 +18,14 @@ const schema = applyMiddleware(
 
 const server = new ApolloServer({
   schema,
+  engine: {
+    // The Graph Manager API key
+    apiKey: process.env.ENGINE_API_KEY
+    // A tag for this specific environment (e.g. `development` or `production`).
+    // For more information on schema tags/variants, see
+    // https://www.apollographql.com/docs/platform/schema-registry/#associating-metrics-with-a-variant
+    // schemaTag: "development"
+  },
   context: async ({ event, context }) => {
     const token =
       event.headers &&
