@@ -5,9 +5,13 @@ const { fetchUser, checkPassword } = require("../utils");
 // Provide resolver functions for your schema fields
 const resolvers = {
   Query: {
-    hello: (obj, params, ctx, info) => "Hello world!",
-    me: (obj, params, { user }, info) =>
-      user.email ? `Logged in as ${user.email}` : `Not logged in`
+    hello: (obj, args, ctx, info) => "Hello world!",
+    me: (obj, args, { user }, info) =>
+      user.email ? `Logged in as ${user.email}` : `Not logged in`,
+    ctx: (obj, arts, ctx, info) =>
+      `HEADERS: ${JSON.stringify(ctx.headers)} 
+      
+       USER: ${JSON.stringify(ctx.user)}`
   },
   Mutation: {
     login: async (object, { email, password }, { driver }) => {

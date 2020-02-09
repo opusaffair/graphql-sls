@@ -13,28 +13,17 @@ functions:
     handler: graphql.graphqlHandler
     events:
       - http:
-          path: graphql
+          path: /
           method: post
           credentials: true
-          preflightContinue: true
-          cors:
-            origin: "*" # <-- Specify allowed origin
-            headers: # <-- Specify allowed headers
-              - Content-Type
-              - X-Amz-Date
-              - Authorization
-              - X-Api-Key
-              - X-Amz-Security-Token
-              - X-Amz-User-Agent
-              - apollographql-client-name
-              - apollographql-client-version
-      - http:
-          path: graphql
-          method: get
           cors: true
-  redirect:
-    handler: handler.redirect
-    events:
       - http:
           path: /
+          method: get
+          cors: true
+  ping:
+    handler: handler.ping
+    events:
+      - http:
+          path: /ping
           method: get

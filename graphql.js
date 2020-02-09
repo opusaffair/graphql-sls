@@ -16,6 +16,28 @@ const schema = applyMiddleware(
   permissions
 );
 
+async function getToken(event) {
+  return (
+    event.headers &&
+    event.headers.Authorization &&
+    event.headers.Authorization.split(" ")[1]
+  );
+}
+
+async function verifyToken(token) {
+  return jwt.verify(token, process.env.JWT_SECRET);
+}
+
+async function makeDriver() {
+  return neo4j.driver(
+    process.env.NEO4J_URI,
+    neo4j.auth.basic(process.env.NEO4J_USERNAME, process.env.NEO4J_PASSWORD),
+    {
+      encrypted: "ENCRYPTION_ON"
+    }
+  );
+}
+
 const server = new ApolloServer({
   schema,
   engine: {
@@ -27,32 +49,20 @@ const server = new ApolloServer({
     // schemaTag: "development"
   },
   context: async ({ event, context }) => {
-    console.log("Context Stuff");
-    const token =
-      event.headers &&
-      event.headers.authorization &&
-      event.headers.authorization.split(" ")[1];
-    var user = { email: null, username: null, id: null, role: [] };
+    const token = await getToken(event);
+    let user = { email: null, username: null, id: null, role: [] };
     if (token) {
-      const decoded = jwt.verify(token, process.env.JWT_SECRET || "shhhhh");
+      user.tokenStatus = token;
+      const decoded = await verifyToken(token);
       user = decoded.user;
     } else {
-      console.log("No Token");
+      user.tokenStatus = "No token";
     }
 
     // add neo4j db to context
     let driver;
     if (!driver) {
-      driver = neo4j.driver(
-        process.env.NEO4J_URI,
-        neo4j.auth.basic(
-          process.env.NEO4J_USERNAME,
-          process.env.NEO4J_PASSWORD
-        ),
-        {
-          encrypted: "ENCRYPTION_ON"
-        }
-      );
+      driver = await makeDriver();
     }
     return {
       headers: event.headers,
