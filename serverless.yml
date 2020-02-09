@@ -1,6 +1,6 @@
 # serverless.yml
 
-service: apollo-lambda
+service: opus-db-graphql
 provider:
   name: aws
   runtime: nodejs12.x
@@ -20,3 +20,9 @@ functions:
           path: graphql
           method: get
           cors: true
+  redirect:
+    handler: handler.redirect
+    events:
+      - http:
+          path: /
+          method: get
