@@ -6,7 +6,7 @@
   "dependencies": {
     "apollo-server": "^2.10.0",
     "apollo-server-lambda": "^2.9.14",
-    "bcrypt": "^3.0.8",
+    "bcryptjs": "^2.4.3",
     "graphql": "^14.5.8",
     "graphql-auth-directives": "^2.1.0",
     "graphql-middleware": "^4.0.2",

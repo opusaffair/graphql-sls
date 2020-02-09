@@ -1,4 +1,4 @@
-const bcrypt = require("bcrypt");
+const bcrypt = require("bcryptjs");
 const isEmail = require("isemail");
 
 async function fetchUser(email, driver) {

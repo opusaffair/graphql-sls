@@ -20,7 +20,6 @@ const resolvers = {
             email,
             _id: toNumber(_id),
             username,
-            hash,
             roles
           }
         },
