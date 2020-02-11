@@ -14,6 +14,10 @@ const isAdmin = rule()(async (parent, args, { user }, info) => {
   return user.roles.includes("ADMIN") || user.roles.includes("ADMINISTRATOR");
 });
 
+const isModerator = rule()(async (parent, args, { user }, info) => {
+  return user.roles.includes("MODERATOR");
+});
+
 const isSelf = rule()(async (parent, args, ctx, info) => {
   const idMatch = ctx.user._id === parent._id;
   const emailMatch = ctx.user.email === parent.email;
@@ -31,7 +35,7 @@ const permissions = shield({
     image_url: allow
   },
   Mutation: {
-    "*": isAuthenticated,
+    "*": or(isModerator, isAdmin),
     login: allow
   }
 });

@@ -17,14 +17,20 @@ const schema = applyMiddleware(
 );
 
 async function getToken(event) {
+  //Checks for capital A Authorization first, then lower case
   return (
-    event.headers &&
-    event.headers.Authorization &&
-    event.headers.Authorization.split(" ")[1]
+    (event.headers &&
+      event.headers.Authorization &&
+      event.headers.Authorization.split(" ")[1]) ||
+    (event.headers &&
+      event.headers.authorization &&
+      event.headers.authorization.split(" ")[1])
   );
 }
 
 async function verifyToken(token) {
+  //TO-DO:
+  //need to handle invalid token response
   return jwt.verify(token, process.env.JWT_SECRET);
 }
 
@@ -52,11 +58,8 @@ const server = new ApolloServer({
     const token = await getToken(event);
     let user = { email: null, username: null, id: null, role: [] };
     if (token) {
-      user.tokenStatus = token;
       const decoded = await verifyToken(token);
       user = decoded.user;
-    } else {
-      user.tokenStatus = "No token";
     }
 
     // add neo4j db to context

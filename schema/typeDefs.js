@@ -79,7 +79,7 @@ const typeDefs = `
     start_datetime: Float
     new_start_datetime: DateTime
     new_end_datetime: DateTime
-    other_start_datetime: DateTime @cypher(statement: "Return datetime(this.new_start_datetime)")
+    display_daterange(showTime: Boolean = true, withYear: Boolean = true, longMonth: Boolean = true): String
     end_datetime: Float
     venue: [Venue] @relation(name: "HELD_AT", direction: "OUT")
     organizers: [Org] @relation(name: "ORGANIZES", direction: "IN")
