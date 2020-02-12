@@ -14,6 +14,30 @@ const resolvers = {
     ctx: (obj, arts, ctx, info) => `USER: ${JSON.stringify(ctx.user)}`
   },
   Event: {
+    organizerNames: (
+      { organizerNames },
+      { conjunction, oxfordComma },
+      {},
+      {}
+    ) => {
+      function oxfordJoin(
+        arr = [],
+        conjunction = "and",
+        oxford = true,
+        ifempty = ""
+      ) {
+        let l = arr.length;
+        if (!l) return ifempty;
+        if (l < 2) return arr[0];
+        if (l < 3) return arr.join(` ${conjunction} `);
+        arr = arr.slice();
+        // arr[l - 1] = `${conjunction} ${arr[l - 1]}`;
+        const lastSpacer = `${oxford ? ", " : " "}${conjunction} `;
+        return arr.slice(0, -1).join(", ") + lastSpacer + arr.slice(-1);
+      }
+      // console.log(obj);
+      return oxfordJoin(organizerNames, conjunction, oxfordComma);
+    },
     display_daterange: (
       { _id },
       { withYear, longMonth, showTime },

@@ -24,20 +24,25 @@ const isSelf = rule()(async (parent, args, ctx, info) => {
   return idMatch && emailMatch;
 });
 
-const permissions = shield({
-  Query: {
-    hello: isAuthenticated
+const permissions = shield(
+  {
+    Query: {
+      hello: isAuthenticated
+    },
+    User: {
+      email: or(isSelf, isAdmin)
+    },
+    Event: {
+      organizerNames: allow
+    },
+    Mutation: {
+      "*": or(isModerator, isAdmin),
+      login: allow
+    }
   },
-  User: {
-    email: or(isSelf, isAdmin)
-  },
-  Event: {
-    image_url: allow
-  },
-  Mutation: {
-    "*": or(isModerator, isAdmin),
-    login: allow
+  {
+    fallbackRule: allow
   }
-});
+);
 
 module.exports = permissions;

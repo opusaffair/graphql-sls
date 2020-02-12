@@ -32,61 +32,118 @@ const typeDefs = `
       SET v.location = point({latitude:v.latitude, longitude:v.longitude})  
       RETURN 'Finished'
     """)
+    convertUserDefaultLocations: String @cypher(statement: """
+    Match (u:User)
+    SET u.location = point({latitude:${lat}, longitude:${lng}})  
+    SET u.radius = ${radius}
+    RETURN 'Finished'
+  """)
     login(email: String!, password: String!): String
   }
 
   type User {
     username: String!
+    slug: String @cypher(statement: "RETURN this.username")
     _id: ID!
-    involved_in: [Involved]
-    involvement: [Involvement]  @relation(name: "INVOLVEMENT", direction: "OUT")
-    email: String
-    followedByMe: Boolean @cypher(statement: """
-      MATCH (me:User {username: $cypherParams.currentUserId})
+    hash: String!
+    confirmed: Boolean
+    viewable: Boolean
+    email: String!
+    location: Point
+    radius: Float
+    name_first: String
+    name_last: String
+    member_since: Float
+    last_seen: Float
+    website: String
+    twitter: String
+    facebook: String
+    Involvement: [Involvement]  @relation(name: "INVOLVEMENT", direction: "OUT")
+    attending: [Event] @relation(name: "ATTENDING", direction: "OUT")
+    interested_in: [Event] @relation(name: "INTERESTED_IN", direction: "OUT")
+    involved_in: [Event] @relation(name: "INVOLVED_IN", direction: "OUT")
+    emailSubOpusEvents: Boolean
+    emailSubWeeklyCal: Boolean
+    emailSubOffers: Boolean
+    bacon_number: Float @cypher(statement: """
+      Match (u:User)
+      WHERE u.username <> this.username
+      Match p=shortestPath((this)-[*1..3:INVOLVED_IN]-(u)) 
+      Return avg(length(p)) as bacon
+    """)
+    followedByUser(email: String = ""): Boolean @cypher(statement: """
+      MATCH (me:User {email: toLower($email)})
       RETURN EXISTS ((me)-[:FOLLOWS]->(this))
     """) 
   } 
 
   type Venue {
-    name: String
+    _id: ID!
+    name: String!
+    slug: String!
     location: Point
   }
 
   type Org {
-    name: String
+    _id: ID!
+    name: String!
+    slug: String!
+    website: String
+    twitter: String
   }
 
   type Tag {
-    name: String
+    _id: ID!
+    name: String!
+    slug: String!
   }
 
-  type Involved @relation(name: "INVOLVED_IN") {
-    from: User
-    to: Event
-    how: String
-  }
 
   type Involvement {
-    user: User @relation(name: "INVOLVEMENT", direction: "IN")
-    event: Event @relation(name: "INVOLVEMENT", direction: "OUT")
+    _id: ID!
+    User: User @relation(name: "INVOLVEMENT", direction: "IN")
+    Event: Event @relation(name: "INVOLVEMENT", direction: "OUT")
     how: String
+  }
+
+  type Instance {
+    _id: ID!
+    Event: Event @relation(name: "HELD_ON", direction: "IN")
+    Venue: Venue @relation(name: "HELD_AT", direction: "OUT")
+    Tag: Tag @relation(name: "TAGGED", direction: "IN")
+    start_datetime: DateTime
+    end_datetime: DateTime
+    endDate: String
+    startDate: String
+    startTime: String
+    note: String
+    override_url: String
   }
 
   type Event {
-    title: String
-    slug: String
+    _id: ID!
+    title: String!
+    slug: String!
     image_url: String
+    published: Boolean
     start_datetime: Float
+    end_datetime: Float
     new_start_datetime: DateTime
+    new_start_datetime_query: DateTime @cypher(statement: "RETURN this.new_start_datetime")
     new_end_datetime: DateTime
     display_daterange(showTime: Boolean = true, withYear: Boolean = true, longMonth: Boolean = true): String
-    end_datetime: Float
-    venue: [Venue] @relation(name: "HELD_AT", direction: "OUT")
-    organizers: [Org] @relation(name: "ORGANIZES", direction: "IN")
-    tags: [Tag] @relation(name: "TAGGED", direction: "IN" )
+    Venue: [Venue] @relation(name: "HELD_AT", direction: "OUT")
+    Instance: [Instance] @relation(name: "HELD_ON", direction: "OUT")
+    Org: [Org] @relation(name: "ORGANIZES", direction: "IN")
+    Tag: [Tag] @relation(name: "TAGGED", direction: "IN" )
     owners: [User] @relation(name: "OWNS", direction: "IN")
-    involved: [Involved]
-    involvement: [Involvement]  @relation(name: "INVOLVEMENT", direction: "IN")
+    organizerNames(conjunction:String = "and", oxfordComma:Boolean = true): String @cypher(statement:"""
+      MATCH (this)<-[:ORGANIZES]-(org:Org)
+      RETURN COLLECT(org.name)
+      """)
+    members_connected: [User] @cypher(statement: "MATCH (this)--(u:User) RETURN u")
+    members_connected_count: Int @cypher(statement: "MATCH (this)--(u:User) RETURN count(distinct u)")
+    Involvement: [Involvement]  @relation(name: "INVOLVEMENT", direction: "IN")
     interested: [User] @relation(name: "INTERESTED_IN", direction: "IN")
     attending: [User] @relation(name: "ATTENDING", direction: "IN")
     popularity: Float
@@ -96,15 +153,19 @@ const typeDefs = `
       Optional Match (this)<-[inv:INVOLVED_IN]-(u) 
       Optional Match (this)<-[int:INTERESTED_IN]-(u) 
       Optional Match (this)<-[att:ATTENDING]-(u)
+      WITH this, pe, inv, int, att,u, CASE
+      WHEN (this.end_datetime - this.start_datetime) > 604800 THEN (this.end_datetime - this.start_datetime) / 604800
+      ELSE 0
+      END as dscore
       RETURN 1000*count(distinct inv)
       +300*count(distinct att)
       +100*count(distinct int) 
-      +this.view_count 
-      +10*sum(distinct reduce(weight = 0, r1 in relationships(pe) | weight + u.follower_count)) 
+      -0*dscore
+      +10*sum(distinct reduce(weight = 0, r1 in relationships(pe) | weight + u.follower_count))^2 
       """)
-      recommended: Float
+    recommended (email: String ): Float
       @cypher(statement: """
-      MATCH (me:User {username: $cypherParams.currentUserId})
+      MATCH (me:User {email: $email})
       Optional MATCH folInv=((this)<-[:INVOLVED_IN]-(:User)<-[r3:FOLLOWS]-(me))
       Optional MATCH tagsVenuesAndOrgs=((this)-[:HELD_AT|ORGANIZES|TAGGED]-(x)-[:HELD_AT|ORGANIZES|TAGGED]-(:Event)<--(me))
       RETURN 10*count(folInv) + count(tagsVenuesAndOrgs)

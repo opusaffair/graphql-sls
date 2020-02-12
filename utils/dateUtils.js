@@ -12,7 +12,6 @@ async function renderFormattedDateRange(
     zone: timeZone
   });
 
-  console.log(startNEO4J);
   let end = DateTime.fromISO(endNEO4J.slice(0, 16), {
     zone: timeZone
   });

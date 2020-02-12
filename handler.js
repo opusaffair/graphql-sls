@@ -1,13 +1,13 @@
-// module.exports.redirect = async event => {
-//   const response = {
-//     statusCode: 301,
-//     headers: {
-//       Location: "/graphql"
-//     }
-//   };
+module.exports.redirect = async event => {
+  const response = {
+    statusCode: 301,
+    headers: {
+      Location: "/graphql"
+    }
+  };
 
-//   return response;
-// };
+  return response;
+};
 
 module.exports.ping = async event => {
   console.log(event.headers.authorization);
