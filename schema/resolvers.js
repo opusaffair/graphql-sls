@@ -52,7 +52,7 @@ const resolvers = {
           `
       MATCH (this:Event) 
       WHERE ID(this) = $id 
-      WITH this.startDatetime as start, this.endDateTime as end
+      WITH this.startDateTime as start, this.endDateTime as end
       RETURN {start: apoc.convert.toString(start), end: apoc.convert.toString(end)} as res `,
           { id: _id }
         )
