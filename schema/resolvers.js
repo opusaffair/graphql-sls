@@ -73,6 +73,41 @@ const resolvers = {
         );
         return formattedDateRange;
       });
+    },
+    displayInstanceDaterange: (
+      { _id },
+      { withYear, longMonth, showTime },
+      { driver },
+      resolveInfo
+    ) => {
+      const session = driver.session();
+      const resultPromise = session.writeTransaction(tx =>
+        tx.run(
+          `
+          MATCH (this)--(i:Instance)
+          WHERE ID(this) = toInt($id)
+          WITH this, apoc.coll.sort(apoc.coll.union(collect(apoc.convert.toString(i.startDateTime)), collect(apoc.convert.toString(i.endDateTime)))) as dates
+          RETURN {start: dates[0], end: dates[-1]} as res`,
+          { id: _id }
+        )
+      );
+      return resultPromise.then(result => {
+        session.close();
+        const singleRecord = result.records[0];
+        if (!singleRecord) return null;
+        const dates = singleRecord ? singleRecord.get("res") : null;
+        const regex = /\[(.*)\]/gm;
+        const timeZone = regex.exec(dates.start)[1];
+        const formattedDateRange = renderFormattedDateRange(
+          dates.start,
+          dates.end,
+          timeZone,
+          withYear,
+          longMonth,
+          showTime
+        );
+        return formattedDateRange;
+      });
     }
   },
   Mutation: {

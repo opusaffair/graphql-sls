@@ -13,7 +13,15 @@ const typeDefs = `
       USER
     }
 
+    extend type Event {
+      createdAt: Float
+      updatedAt: Float
+    }
+
   type Query {
+    """
+    Tests that you're logged in
+    """
     hello: String
     cypherMe: String @cypher(statement: "RETURN $cypherParams.currentUserId")
     me: String
@@ -21,22 +29,33 @@ const typeDefs = `
   }
 
   type Mutation {
-    convertDates: String @cypher(statement: """
+    convertToInstances: String @cypher(statement: """
       Match (e:Event)--(v:Venue)
-      SET e.startDateTime = datetime({epochSeconds:toInteger(e.start_datetime), timezone: v.timezone})
-      SET e.endDateTime = datetime({epochSeconds:toInteger(e.end_datetime), timezone: v.timezone})
+      MERGE (e)-[:HELD_ON]->(i:Instance{endDateTime:datetime({epochSeconds:toInteger(e.start_datetime), timezone: v.timezone}),startDateTime:datetime({epochSeconds:toInteger(e.start_datetime), timezone: v.timezone})})-[:HELD_AT]->(v)
+      SET i.location=point({latitude:v.latitude,longitude:v.longitude})
       RETURN 'Finished'
     """)
     convertLocations: String @cypher(statement: """
       Match (v:Venue)
-      SET v.location = point({latitude:v.latitude, longitude:v.longitude})  
+      SET v.location = point({latitude:v.latitude, longitude:v.longitude})
+      SET v.timezone = 'America/New York'
       RETURN 'Finished'
     """)
     convertUserDefaultLocationsFromChapter: String @cypher(statement: """
-    Match (u:User)--(c:Chapter)
-    SET u.location = c.location
-    SET u.radius = c.radius
-    RETURN 'Finished'
+      Match (u:User)--(c:Chapter)
+      WITH u,c,
+      CASE c.city
+      WHEN 'Boston' then point({latitude:42.3601,longitude:-71.058})
+      WHEN 'Miami' then point({latitude:25.7617,longitude:-80.1918})
+      END as p,
+      CASE c.city
+      WHEN 'Boston' then 7000
+      WHEN 'Miami' then 10000
+      END as r
+      SET c.location = p, c.radius = r
+      SET u.location = c.location
+      SET u.radius = c.radius
+      RETURN 'Finished'
   """)
     login(email: String!, password: String!): String
   }
@@ -48,7 +67,9 @@ const typeDefs = `
     hash: String!
     confirmed: Boolean
     viewable: Boolean
+    """Only visible to admins or self"""
     email: String!
+    avatar_url: String
     location: Point
     radius: Float
     name_first: String
@@ -116,11 +137,12 @@ const typeDefs = `
     Event: Event @relation(name: "HELD_ON", direction: "IN")
     Venue: Venue @relation(name: "HELD_AT", direction: "OUT")
     Tag: Tag @relation(name: "TAGGED", direction: "IN")
-    start_datetime: DateTime
-    end_datetime: DateTime
-    endDate: String
-    startDate: String
-    startTime: String
+    location: Point
+    startDateTime: DateTime
+    endDateTime: DateTime
+    # endDate: String
+    # startDate: String
+    # startTime: String
     note: String
     override_url: String
   }
@@ -131,11 +153,23 @@ const typeDefs = `
     slug: String!
     image_url: String
     published: Boolean
-    start_datetime: Float
-    end_datetime: Float
-    startDateTime: DateTime
-    endDateTime: DateTime
+    organizer_desc: String
+    # start_datetime: Float
+    # end_datetime: Float
+    # startDateTime: DateTime
+    # endDateTime: DateTime
+    firstInstanceStartDateTimeString: String @cypher(statement: """
+          MATCH (this)--(i:Instance)
+          WITH apoc.coll.sort(apoc.coll.union(collect(apoc.convert.toString(i.startDateTime)), collect(apoc.convert.toString(i.endDateTime)))) as dates
+          RETURN dates[0]
+    """)
+    lastInstanceEndDateTimeString: String @cypher(statement: """
+        MATCH (this)--(i:Instance)
+        WITH apoc.coll.sort(apoc.coll.union(collect(apoc.convert.toString(i.startDateTime)), collect(apoc.convert.toString(i.endDateTime)))) as dates
+        RETURN dates[-1]
+    """)
     display_daterange(showTime: Boolean = true, withYear: Boolean = true, longMonth: Boolean = true): String
+    displayInstanceDaterange(showTime: Boolean = true, withYear: Boolean = true, longMonth: Boolean = true): String
     Venue: [Venue] @relation(name: "HELD_AT", direction: "OUT")
     Instance: [Instance] @relation(name: "HELD_ON", direction: "OUT")
     Org: [Org] @relation(name: "ORGANIZES", direction: "IN")
@@ -148,6 +182,7 @@ const typeDefs = `
     members_connected: [User] @cypher(statement: "MATCH (this)--(u:User) RETURN u")
     members_connected_count: Int @cypher(statement: "MATCH (this)--(u:User) RETURN count(distinct u)")
     Involvement: [Involvement]  @relation(name: "INVOLVEMENT", direction: "IN")
+    involved_in: [User] @relation(name: "INVOLVED_IN", direction: "IN")
     interested: [User] @relation(name: "INTERESTED_IN", direction: "IN")
     attending: [User] @relation(name: "ATTENDING", direction: "IN")
     popularity: Float
@@ -167,7 +202,7 @@ const typeDefs = `
       -0*dscore
       +10*sum(distinct reduce(weight = 0, r1 in relationships(pe) | weight + u.follower_count))^2 
       """)
-    recommended (email: String ): Float
+    recommended (email: String = ""): Float
       @cypher(statement: """
       MATCH (me:User {email: $email})
       Optional MATCH folInv=((this)<-[:INVOLVED_IN]-(:User)<-[r3:FOLLOWS]-(me))

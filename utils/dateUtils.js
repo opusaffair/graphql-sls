@@ -22,7 +22,7 @@ function getTimeZoneFromLocation(lat, lng) {
 async function renderFormattedDateRange(
   startNEO4J,
   endNEO4J,
-  timeZone,
+  timeZone = "America/New York",
   withYear = true,
   longMonth = false,
   showTime = true
