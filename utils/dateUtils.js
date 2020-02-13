@@ -1,4 +1,23 @@
 var { DateTime } = require("luxon");
+const fetch = require("node-fetch");
+
+function getTimeZoneFromLocation(lat, lng) {
+  const key = "8C1V52ZBKLJS";
+  const url = `http://api.timezonedb.com/v2.1/get-time-zone?key=${key}&format=json&by=position&lat=${lat}&lng=${lng}`;
+
+  return fetch(url)
+    .then(res => {
+      return res.json();
+    })
+    .then(json => {
+      console.log(json.zoneName);
+      return json.zoneName;
+    })
+    .catch(err => {
+      console.log(err);
+      return null;
+    });
+}
 
 async function renderFormattedDateRange(
   startNEO4J,
@@ -50,4 +69,4 @@ async function renderFormattedDateRange(
   return formattedDateRange;
 }
 
-module.exports = { renderFormattedDateRange };
+module.exports = { renderFormattedDateRange, getTimeZoneFromLocation };

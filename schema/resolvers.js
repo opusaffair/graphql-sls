@@ -3,7 +3,10 @@ const { neo4jgraphql } = require("neo4j-graphql-js");
 const { toNumber } = require("neo4j-driver/lib/integer");
 const { fetchUser, checkPassword } = require("../utils/utils");
 // var { DateTime } = require("luxon");
-const { renderFormattedDateRange } = require("../utils/dateUtils");
+const {
+  renderFormattedDateRange,
+  getTimeZoneFromLocation
+} = require("../utils/dateUtils");
 
 // Provide resolver functions for your schema fields
 const resolvers = {
@@ -13,13 +16,14 @@ const resolvers = {
       user.email ? `Logged in as ${user.email}` : `Not logged in`,
     ctx: (obj, arts, ctx, info) => `USER: ${JSON.stringify(ctx.user)}`
   },
+  Venue: {
+    // getTz: async ({ location }) => {
+    //   const { latitude, longitude } = location;
+    //   return await getTimeZoneFromLocation(latitude, longitude);
+    // }
+  },
   Event: {
-    organizerNames: (
-      { organizerNames },
-      { conjunction, oxfordComma },
-      {},
-      {}
-    ) => {
+    organizerNames: ({ organizerNames }, { conjunction, oxfordComma }) => {
       function oxfordJoin(
         arr = [],
         conjunction = "and",
@@ -31,11 +35,9 @@ const resolvers = {
         if (l < 2) return arr[0];
         if (l < 3) return arr.join(` ${conjunction} `);
         arr = arr.slice();
-        // arr[l - 1] = `${conjunction} ${arr[l - 1]}`;
         const lastSpacer = `${oxford ? ", " : " "}${conjunction} `;
         return arr.slice(0, -1).join(", ") + lastSpacer + arr.slice(-1);
       }
-      // console.log(obj);
       return oxfordJoin(organizerNames, conjunction, oxfordComma);
     },
     display_daterange: (
@@ -50,7 +52,7 @@ const resolvers = {
           `
       MATCH (this:Event) 
       WHERE ID(this) = $id 
-      WITH this.new_start_datetime as start, this.new_end_datetime as end
+      WITH this.startDatetime as start, this.endDateTime as end
       RETURN {start: apoc.convert.toString(start), end: apoc.convert.toString(end)} as res `,
           { id: _id }
         )

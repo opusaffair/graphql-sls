@@ -22,9 +22,9 @@ const typeDefs = `
 
   type Mutation {
     convertDates: String @cypher(statement: """
-      Match (e:Event)
-      SET e.new_start_datetime = datetime({epochSeconds:toInteger(e.start_datetime), timezone: 'America/New York'})
-      SET e.new_end_datetime = datetime({epochSeconds:toInteger(e.end_datetime), timezone: 'America/New York'})
+      Match (e:Event)--(v:Venue)
+      SET e.startDateTime = datetime({epochSeconds:toInteger(e.start_datetime), timezone: v.timezone})
+      SET e.endDateTime = datetime({epochSeconds:toInteger(e.end_datetime), timezone: v.timezone})
       RETURN 'Finished'
     """)
     convertLocations: String @cypher(statement: """
@@ -32,10 +32,10 @@ const typeDefs = `
       SET v.location = point({latitude:v.latitude, longitude:v.longitude})  
       RETURN 'Finished'
     """)
-    convertUserDefaultLocations: String @cypher(statement: """
-    Match (u:User)
-    SET u.location = point({latitude:${lat}, longitude:${lng}})  
-    SET u.radius = ${radius}
+    convertUserDefaultLocationsFromChapter: String @cypher(statement: """
+    Match (u:User)--(c:Chapter)
+    SET u.location = c.location
+    SET u.radius = c.radius
     RETURN 'Finished'
   """)
     login(email: String!, password: String!): String
@@ -55,6 +55,7 @@ const typeDefs = `
     name_last: String
     member_since: Float
     last_seen: Float
+    timezone: String
     website: String
     twitter: String
     facebook: String
@@ -82,6 +83,10 @@ const typeDefs = `
     name: String!
     slug: String!
     location: Point
+    timezone: String
+    latitude: Float
+    longitude: Float
+    events: [Event] @relation(name: "HELD_AT", direction: "IN")
   }
 
   type Org {
@@ -128,9 +133,8 @@ const typeDefs = `
     published: Boolean
     start_datetime: Float
     end_datetime: Float
-    new_start_datetime: DateTime
-    new_start_datetime_query: DateTime @cypher(statement: "RETURN this.new_start_datetime")
-    new_end_datetime: DateTime
+    startDateTime: DateTime
+    endDateTime: DateTime
     display_daterange(showTime: Boolean = true, withYear: Boolean = true, longMonth: Boolean = true): String
     Venue: [Venue] @relation(name: "HELD_AT", direction: "OUT")
     Instance: [Instance] @relation(name: "HELD_ON", direction: "OUT")
