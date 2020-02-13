@@ -36,11 +36,8 @@ async function verifyToken(token) {
 
 async function makeDriver() {
   return neo4j.driver(
-    process.env.NEO4J_URI_GRAPHENEDB,
-    neo4j.auth.basic(
-      process.env.NEO4J_USERNAME_GRAPHENEDB,
-      process.env.NEO4J_PASSWORD_GRAPHENEDB
-    ),
+    process.env.NEO4J_URI,
+    neo4j.auth.basic(process.env.NEO4J_USERNAME, process.env.NEO4J_PASSWORD),
     {
       encrypted: "ENCRYPTION_ON"
     }
