@@ -195,13 +195,45 @@ const typeDefs = `
       WITH this, pe, inv, int, att,u, CASE
       WHEN (this.end_datetime - this.start_datetime) > 604800 THEN (this.end_datetime - this.start_datetime) / 604800
       ELSE 0
-      END as dscore
+      END as longRun
       RETURN 1000*count(distinct inv)
       +300*count(distinct att)
       +100*count(distinct int) 
-      -0*dscore
+      -500*longRun
       +10*sum(distinct reduce(weight = 0, r1 in relationships(pe) | weight + u.follower_count))^2 
       """)
+    popularityExperiment(
+      invWeight: Int = 1000
+      attWeight: Int = 300
+      intWeight: Int = 100
+      invFolWeight: Int = 10
+      attFolWeight: Int = 2
+      intFolWeight: Int = 1
+      longRunWeight: Int = -100
+      ): Float @cypher(statement:"""
+      Match (this)
+      Optional Match (this)--(i:Instance)
+      Optional Match pe=((this)--(u:User))
+      Optional Match (this)<-[:INVOLVED_IN]-(inv) 
+      Optional Match (this)<-[:INTERESTED_IN]-(int) 
+      Optional Match (this)<-[:ATTENDING]-(att)
+      Optional Match (inv)<-[:FOLLOWS]-(invFol)
+      Optional Match (att)<-[:FOLLOWS]-(attFol)
+      Optional Match (int)<-[:FOLLOWS]-(intFol)
+      WITH this, pe,u, inv, int, att,invFol, intFol, attFol, 
+      CASE
+      WHEN (this.end_datetime - this.start_datetime) > 604800 THEN (this.end_datetime - this.start_datetime) / 604800
+      ELSE 0
+      END as longRun
+      RETURN 
+      $invWeight*count(distinct inv)
+      +$attWeight*count(distinct att)
+      +$intWeight*count(distinct int) 
+      +$longRunWeight * longRun
+      +$invFolWeight*count(distinct invFol)
+      +$attFolWeight*count(distinct attFol)
+      +$intFolWeight*count(distinct intFol)
+    """)
     recommended (email: String = ""): Float
       @cypher(statement: """
       MATCH (me:User {email: $email})

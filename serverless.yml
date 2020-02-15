@@ -7,6 +7,9 @@ provider:
 plugins:
   - serverless-offline
   - serverless-dotenv-plugin
+custom:
+  serverless-offline:
+    port: 4000
 functions:
   graphql:
     # this is formatted as <FILENAME>.<HANDLER>
