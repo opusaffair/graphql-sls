@@ -12,8 +12,7 @@ const {
 const resolvers = {
   Query: {
     hello: (obj, args, ctx, info) => "Hello world!",
-    me: (obj, args, { user }, info) =>
-      user.email ? `Logged in as ${user.email}` : `Not logged in`,
+    me: (obj, args, { user }, info) => JSON.stringify(user),
     ctx: (obj, arts, ctx, info) => `USER: ${JSON.stringify(ctx.user)}`
   },
   Venue: {
@@ -111,7 +110,8 @@ const resolvers = {
     }
   },
   Mutation: {
-    login: async (object, { email, password }, { driver }) => {
+    login: async (object, context, { driver }) => {
+      const { email, password } = context;
       const userNode = await fetchUser(email, driver);
       if (!userNode) throw new Error("User does not exist");
       const { _id, username, hash, roles } = userNode;

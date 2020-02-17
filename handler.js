@@ -10,7 +10,7 @@ module.exports.redirect = async event => {
 };
 
 module.exports.ping = async event => {
-  console.log(event.headers.authorization);
+  // console.log(event.headers.authorization);
   const response = {
     statusCode: 200,
     body: JSON.stringify(event.headers)

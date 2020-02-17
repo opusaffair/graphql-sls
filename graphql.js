@@ -6,6 +6,8 @@ const neo4j = require("neo4j-driver");
 const permissions = require("./schema/permissions");
 const { typeDefs } = require("./schema/typeDefs");
 const resolvers = require("./schema/resolvers");
+const { promisify } = require("util");
+const jwksClient = require("jwks-rsa");
 const jwt = require("jsonwebtoken");
 
 const schema = applyMiddleware(
@@ -18,6 +20,7 @@ const schema = applyMiddleware(
 
 async function getToken(event) {
   //Checks for capital A Authorization first, then lower case
+  // console.log(event.headers);
   return (
     (event.headers &&
       event.headers.Authorization &&
@@ -28,10 +31,24 @@ async function getToken(event) {
   );
 }
 
+async function getPublicKey(kid) {
+  // RSA Public Key Client
+  const client = jwksClient({
+    cache: true,
+    rateLimit: true,
+    jwksRequestsPerMinute: 5,
+    jwksUri: `https://${process.env.AUTH0_DOMAIN}/.well-known/jwks.json`
+  });
+  const getSigningKey = promisify(client.getSigningKey);
+  const key = await getSigningKey(kid);
+  return key;
+}
+
 async function verifyToken(token) {
-  //TO-DO:
-  //need to handle invalid token response
-  return jwt.verify(token, process.env.JWT_SECRET);
+  const unverified = jwt.decode(token, { complete: true });
+  const key = await getPublicKey(unverified.header.kid);
+  const verified = jwt.verify(token, key.publicKey);
+  return verified;
 }
 
 async function makeDriver() {
@@ -59,7 +76,8 @@ const server = new ApolloServer({
     let user = { email: null, username: null, id: null, role: [] };
     if (token) {
       const decoded = await verifyToken(token);
-      user = decoded.user;
+      // console.log("decoded in server ", decoded);
+      if (decoded) user = decoded;
     }
 
     // add neo4j db to context
@@ -67,6 +85,7 @@ const server = new ApolloServer({
     if (!driver) {
       driver = await makeDriver();
     }
+
     return {
       headers: event.headers,
       functionName: context.functionName,
@@ -74,7 +93,7 @@ const server = new ApolloServer({
       event,
       user,
       cypherParams: {
-        currentUserId: user.username
+        currentUser: user
       }
     };
   },

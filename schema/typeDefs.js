@@ -23,9 +23,10 @@ const typeDefs = `
     Tests that you're logged in
     """
     hello: String
-    cypherMe: String @cypher(statement: "RETURN $cypherParams.currentUserId")
+    cypherMe: String @cypher(statement: "RETURN $cypherParams.currentUser.email")
     me: String
     ctx: String
+    currentUser: User @cypher(statement:"MATCH (this {email:$cypherParams.currentUser.email}) RETURN this")
   }
 
   type Mutation {

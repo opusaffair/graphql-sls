@@ -12,11 +12,13 @@
     "graphql-middleware": "^4.0.2",
     "graphql-shield": "^7.0.10",
     "isemail": "^3.2.0",
+    "jwks-rsa": "^1.6.2",
     "luxon": "^1.22.0",
     "neo4j-driver": "^4.0.1",
     "neo4j-graphql-js": "^2.11.0",
     "node-fetch": "^2.6.0",
-    "serverless-dotenv-plugin": "^2.3.1"
+    "serverless-dotenv-plugin": "^2.3.1",
+    "util": "^0.12.1"
   },
   "devDependencies": {
     "serverless-offline": "^5.12.1"
