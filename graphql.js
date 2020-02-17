@@ -46,7 +46,11 @@ async function getPublicKey(kid) {
 
 async function verifyToken(token) {
   const unverified = jwt.decode(token, { complete: true });
-  const key = await getPublicKey(unverified.header.kid);
+  const kid = unverified.header.kid || process.env.AUTH0_KID;
+  console.log(unverified.header.alg);
+  if (unverified.header.alg != "RS256") return null;
+  const key = await getPublicKey(kid);
+  if (!key) return null;
   const verified = jwt.verify(token, key.publicKey);
   return verified;
 }
