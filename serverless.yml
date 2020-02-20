@@ -36,3 +36,13 @@ functions:
       - http:
           path: /
           method: get
+  auth0:
+    handler: handler.auth0
+    events:
+      - http:
+          path: /auth0
+          method: get
+      - http:
+          path: /auth0
+          method: post
+          credentials: true

@@ -8,7 +8,18 @@ async function fetchUser(email, driver) {
       `
       MATCH (u:User {email:toLower($email)})--(r:Role) 
       SET u.last_seen=datetime().epochSeconds 
-      RETURN {user:{username:u.username, _id:ID(u), email:u.email, hash: u.password_hash, roles:collect(toUpper(r.name))}}
+      RETURN {user:{
+        nickname:u.username, 
+        user_id:ID(u), 
+        email:u.email, 
+        picture: u.avatar_url,
+        name: u.name_first + ' ' + u.name_last,
+        hash: u.password_hash,
+        given_name: u.name_salutation,
+        family_name: u.name_last,
+        email_verified: u.confirmed,
+        roles:collect(toUpper(r.name))
+      }}
       `,
       { email }
     )
@@ -26,4 +37,12 @@ async function checkPassword(pwd, hashedPwd) {
   return match;
 }
 
-module.exports = { fetchUser, checkPassword };
+async function checkBasicAuth(token) {
+  const credentials = Buffer.from(token, "base64").toString("ascii");
+  const authorized =
+    credentials ==
+    `${process.env.AUTH0_BASIC_USERNAME}:${process.env.AUTH0_BASIC_PWD}`;
+  return authorized ? { username: "AUTH0", roles: ["AUTH0"] } : null;
+}
+
+module.exports = { fetchUser, checkPassword, checkBasicAuth };

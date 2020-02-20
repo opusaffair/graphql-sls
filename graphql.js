@@ -9,6 +9,7 @@ const resolvers = require("./schema/resolvers");
 const { promisify } = require("util");
 const jwksClient = require("jwks-rsa");
 const jwt = require("jsonwebtoken");
+const { checkBasicAuth } = require("./utils/utils");
 
 const schema = applyMiddleware(
   makeAugmentedSchema({
@@ -20,7 +21,6 @@ const schema = applyMiddleware(
 
 async function getToken(event) {
   //Checks for capital A Authorization first, then lower case
-  // console.log(event.headers);
   return (
     (event.headers &&
       event.headers.Authorization &&
@@ -40,14 +40,17 @@ async function getPublicKey(kid) {
     jwksUri: `https://${process.env.AUTH0_DOMAIN}/.well-known/jwks.json`
   });
   const getSigningKey = promisify(client.getSigningKey);
-  const key = await getSigningKey(kid);
+  const key = await getSigningKey(kid || process.env.AUTH0_KID);
   return key;
 }
 
 async function verifyToken(token) {
+  // console.log(token.split(".").length);
+  if (token.split(".").length < 3) {
+    return checkBasicAuth(token);
+  }
   const unverified = jwt.decode(token, { complete: true });
-  const kid = unverified.header.kid || process.env.AUTH0_KID;
-  console.log(unverified.header.alg);
+  const kid = unverified.header.kid;
   if (unverified.header.alg != "RS256") return null;
   const key = await getPublicKey(kid);
   if (!key) return null;
@@ -80,10 +83,8 @@ const server = new ApolloServer({
     let user = { email: null, username: null, id: null, role: [] };
     if (token) {
       const decoded = await verifyToken(token);
-      // console.log("decoded in server ", decoded);
       if (decoded) user = decoded;
     }
-
     // add neo4j db to context
     let driver;
     if (!driver) {

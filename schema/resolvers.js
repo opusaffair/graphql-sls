@@ -2,6 +2,7 @@ const jwt = require("jsonwebtoken");
 const { neo4jgraphql } = require("neo4j-graphql-js");
 const { toNumber } = require("neo4j-driver/lib/integer");
 const { fetchUser, checkPassword } = require("../utils/utils");
+const fetch = require("node-fetch");
 // var { DateTime } = require("luxon");
 const {
   renderFormattedDateRange,
@@ -110,25 +111,46 @@ const resolvers = {
     }
   },
   Mutation: {
-    login: async (object, context, { driver }) => {
-      const { email, password } = context;
+    login: async (object, args, { driver }) => {
+      const { email, password } = args;
       const userNode = await fetchUser(email, driver);
       if (!userNode) throw new Error("User does not exist");
       const { _id, username, hash, roles } = userNode;
       const validPassword = await checkPassword(password, userNode.hash);
       if (!validPassword) throw new Error("Invalid password");
-      const token = jwt.sign(
-        {
-          user: {
-            email,
-            _id: toNumber(_id),
-            username,
-            roles
-          }
-        },
-        process.env.JWT_SECRET
-      );
-      return token;
+
+      var options = {
+        method: "POST",
+
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          client_id: process.env.AUTH0_CLIENT_ID,
+          client_secret: process.env.AUTH0_CLIENT_SECRET,
+          audience: "https://api.opusaffair.com/graphql",
+          grant_type: "client_credentials"
+        })
+      };
+      // console.log(options);
+      return fetch("https://opusaffair.auth0.com/oauth/token", options)
+        .then(res => res.json())
+        .then(json => {
+          console.log(json);
+          return json.access_token;
+        });
+    },
+    auth0Login: async (object, args, { driver }) => {
+      const { email, password } = args;
+      const userNode = await fetchUser(email, driver);
+      if (!userNode) throw new Error("User does not exist");
+      console.log(userNode);
+      const validPassword = await checkPassword(password, userNode.hash);
+      if (!validPassword) throw new Error("Invalid password");
+      delete userNode.hash;
+      return JSON.stringify({
+        user: {
+          ...userNode
+        }
+      });
     }
   }
 };

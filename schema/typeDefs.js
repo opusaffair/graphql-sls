@@ -6,12 +6,17 @@ const lat = 42.3601,
 // Construct a schema, using GraphQL schema language
 const typeDefs = `
 
-    enum Role {
+    enum RoleName {
       ADMIN
       MODERATOR
       HOST
       USER
     }
+
+type Role {
+  name: String!
+  users: [User] @relation(name: "HAS_ROLE", direction: "IN")
+}
 
     extend type Event {
       createdAt: Float
@@ -59,13 +64,18 @@ const typeDefs = `
       RETURN 'Finished'
   """)
     login(email: String!, password: String!): String
+    auth0Login(email: String!, password: String!): String
+    auth0Create(email: String!, password: String!): String
+    auth0ChangePassword(email: String!, newPassword: String!): String
+    auth0Verify(email: String!): String
+    auth0GetUser(email:String): Boolean
   }
 
   type User {
     username: String!
     slug: String @cypher(statement: "RETURN this.username")
     _id: ID!
-    hash: String!
+    password_hash: String!
     confirmed: Boolean
     viewable: Boolean
     """Only visible to admins or self"""
@@ -73,10 +83,12 @@ const typeDefs = `
     avatar_url: String
     location: Point
     radius: Float
+    name_full: String @cypher(statement: "Return this.name_first+' '+this.name_last")
     name_first: String
     name_last: String
     member_since: Float
     last_seen: Float
+    roles: [Role] @relation(name: "HAS_ROLE", direction: "OUT")
     timezone: String
     website: String
     twitter: String

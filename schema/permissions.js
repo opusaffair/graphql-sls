@@ -18,6 +18,10 @@ const isModerator = rule()(async (parent, args, { user }, info) => {
   return user.roles.includes("MODERATOR");
 });
 
+const isAuth0 = rule()(async (parent, args, { user }, info) => {
+  return user.roles.includes("AUTH0");
+});
+
 const isSelf = rule()(async (parent, args, ctx, info) => {
   const idMatch = ctx.user._id === parent._id;
   const emailMatch = ctx.user.email === parent.email;
@@ -30,13 +34,13 @@ const permissions = shield(
       hello: isAuthenticated
     },
     User: {
-      email: or(isSelf, isAdmin)
+      email: or(isSelf, isAdmin, isAuth0)
     },
     Event: {
       organizerNames: allow
     },
     Mutation: {
-      "*": or(isModerator, isAdmin),
+      "*": or(isModerator, isAdmin, isAuth0),
       login: allow
     }
   },
