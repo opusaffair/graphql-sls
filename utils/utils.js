@@ -10,7 +10,7 @@ async function fetchUser(email, driver) {
       SET u.last_seen=datetime().epochSeconds 
       RETURN {user:{
         nickname:u.username, 
-        user_id:ID(u), 
+        user_id:toString(ID(u)), 
         email:u.email, 
         picture: u.avatar_url,
         name: u.name_first + ' ' + u.name_last,
