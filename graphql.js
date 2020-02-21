@@ -15,8 +15,8 @@ const schema = applyMiddleware(
   makeAugmentedSchema({
     typeDefs,
     resolvers
-  }),
-  permissions
+  })
+  // permissions
 );
 
 async function getToken(event) {

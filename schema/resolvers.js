@@ -1,7 +1,7 @@
 const jwt = require("jsonwebtoken");
 const { neo4jgraphql } = require("neo4j-graphql-js");
 const { toNumber } = require("neo4j-driver/lib/integer");
-const { fetchUser, checkPassword } = require("../utils/utils");
+const { fetchUser, checkPassword, verifyUser } = require("../utils/utils");
 const fetch = require("node-fetch");
 // var { DateTime } = require("luxon");
 const {
@@ -144,6 +144,18 @@ const resolvers = {
       // console.log(userNode);
       const validPassword = await checkPassword(password, userNode.hash);
       if (!validPassword) throw new Error("Invalid password");
+      delete userNode.hash;
+      return JSON.stringify({
+        user: {
+          ...userNode
+        }
+      });
+    },
+    auth0Verify: async (object, args, { driver }) => {
+      const { email } = args;
+      const userNode = await verifyUser(email, driver);
+      console.log(userNode);
+      if (!userNode) throw new Error("User does not exist");
       delete userNode.hash;
       return JSON.stringify({
         user: {

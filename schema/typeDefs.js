@@ -72,9 +72,10 @@ type Role {
   }
 
   type User {
+    opus_id: ID!
+    _id: ID!
     username: String!
     slug: String @cypher(statement: "RETURN this.username")
-    _id: ID!
     password_hash: String!
     confirmed: Boolean
     viewable: Boolean
