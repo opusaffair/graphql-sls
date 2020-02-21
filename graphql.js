@@ -55,6 +55,9 @@ async function verifyToken(token) {
   const key = await getPublicKey(kid);
   if (!key) return null;
   const verified = jwt.verify(token, key.publicKey);
+  //Auth0 passes custom fields (liek roles) through a namespaced property. This pulls the role out to the user level.
+  verified.roles = verified["https://www.opusaffair.com/roles"];
+  //returns a user object if verified. Null if not.
   return verified;
 }
 

@@ -12,7 +12,6 @@ custom:
     port: 4000
 functions:
   graphql:
-    # this is formatted as <FILENAME>.<HANDLER>
     handler: graphql.graphqlHandler
     events:
       - http:
@@ -24,25 +23,9 @@ functions:
           path: /graphql
           method: get
           cors: true
-  ping:
-    handler: handler.ping
-    events:
-      - http:
-          path: /ping
-          method: get
   redirect:
     handler: handler.redirect
     events:
       - http:
           path: /
           method: get
-  auth0:
-    handler: handler.auth0
-    events:
-      - http:
-          path: /auth0
-          method: get
-      - http:
-          path: /auth0
-          method: post
-          credentials: true

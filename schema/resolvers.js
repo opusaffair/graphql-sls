@@ -115,7 +115,6 @@ const resolvers = {
       const { email, password } = args;
       const userNode = await fetchUser(email, driver);
       if (!userNode) throw new Error("User does not exist");
-      const { _id, username, hash, roles } = userNode;
       const validPassword = await checkPassword(password, userNode.hash);
       if (!validPassword) throw new Error("Invalid password");
 
@@ -142,7 +141,7 @@ const resolvers = {
       const { email, password } = args;
       const userNode = await fetchUser(email, driver);
       if (!userNode) throw new Error("User does not exist");
-      console.log(userNode);
+      // console.log(userNode);
       const validPassword = await checkPassword(password, userNode.hash);
       if (!validPassword) throw new Error("Invalid password");
       delete userNode.hash;
