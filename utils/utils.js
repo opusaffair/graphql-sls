@@ -6,7 +6,8 @@ async function fetchUser(email, driver) {
   const resultPromise = session.writeTransaction(tx =>
     tx.run(
       `
-      MATCH (u:User {email:toLower($email)})--(r:Role) 
+      MATCH (u:User {email:toLower($email)})
+      Optional MATCH (u)--(r:Role)
       SET u.last_seen=datetime().epochSeconds 
       RETURN {user:{
         nickname:u.username, 

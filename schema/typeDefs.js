@@ -68,7 +68,7 @@ type Role {
     auth0Create(email: String!, password: String!): String
     auth0ChangePassword(email: String!, newPasswordHash: String!): String
     auth0Verify(email: String!): String
-    auth0GetUser(email:String): Boolean
+    auth0GetUser(email:String!): Boolean
   }
 
   type User {

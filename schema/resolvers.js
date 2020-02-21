@@ -177,6 +177,18 @@ const resolvers = {
           ...userNode
         }
       });
+    },
+    auth0GetUser: async (object, args, { driver }) => {
+      const { email } = args;
+      const userNode = await fetchUser(email, driver);
+      console.log(userNode);
+      if (!userNode) throw new Error("User does not exist");
+      delete userNode.hash;
+      return JSON.stringify({
+        user: {
+          ...userNode
+        }
+      });
     }
   }
 };
