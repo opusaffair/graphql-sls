@@ -1,7 +1,12 @@
 const jwt = require("jsonwebtoken");
 const { neo4jgraphql } = require("neo4j-graphql-js");
 const { toNumber } = require("neo4j-driver/lib/integer");
-const { fetchUser, checkPassword, verifyUser } = require("../utils/utils");
+const {
+  fetchUser,
+  checkPassword,
+  verifyUser,
+  changePassword
+} = require("../utils/utils");
 const fetch = require("node-fetch");
 // var { DateTime } = require("luxon");
 const {
@@ -157,6 +162,16 @@ const resolvers = {
       console.log(userNode);
       if (!userNode) throw new Error("User does not exist");
       delete userNode.hash;
+      return JSON.stringify({
+        user: {
+          ...userNode
+        }
+      });
+    },
+    auth0ChangePassword: async (object, args, { driver }) => {
+      const { email, newPasswordHash } = args;
+      const userNode = await changePassword(email, newPasswordHash, driver);
+      if (!userNode) throw new Error("User does not exist");
       return JSON.stringify({
         user: {
           ...userNode

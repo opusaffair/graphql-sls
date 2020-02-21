@@ -67,6 +67,36 @@ async function verifyUser(email, driver) {
   });
 }
 
+async function changePassword(email, newPassword, driver) {
+  const session = driver.session();
+  const resultPromise = session.writeTransaction(tx =>
+    tx.run(
+      `
+      MATCH (u:User {email:toLower($email)})
+      SET u.password_hash = $newPassword 
+      RETURN {user:{
+        nickname:u.username, 
+        user_id:toString(ID(u)), 
+        email:u.email, 
+        picture: u.avatar_url,
+        name: u.name_first + ' ' + u.name_last,
+        hash: u.password_hash,
+        given_name: u.name_salutation,
+        family_name: u.name_last,
+        email_verified: u.confirmed
+      }}
+      `,
+      { email, newPassword }
+    )
+  );
+  return resultPromise.then(result => {
+    session.close();
+    const singleRecord = result.records[0];
+    const user = singleRecord ? singleRecord.get(0).user : null;
+    return user;
+  });
+}
+
 async function checkBasicAuth(token) {
   const credentials = Buffer.from(token, "base64").toString("ascii");
   const authorized =
@@ -75,4 +105,10 @@ async function checkBasicAuth(token) {
   return authorized ? { username: "AUTH0", roles: ["AUTH0"] } : null;
 }
 
-module.exports = { fetchUser, checkPassword, checkBasicAuth, verifyUser };
+module.exports = {
+  fetchUser,
+  checkPassword,
+  checkBasicAuth,
+  verifyUser,
+  changePassword
+};
