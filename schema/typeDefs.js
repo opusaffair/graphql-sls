@@ -68,7 +68,6 @@ type Role {
     auth0Create(email: String!, password: String!): String
     auth0ChangePassword(email: String!, newPasswordHash: String!): String
     auth0Verify(email: String!): String
-    auth0GetUser(email:String!): Boolean
   }
 
   type User {
@@ -114,6 +113,7 @@ type Role {
   } 
 
   type Venue {
+    opus_id: ID!
     _id: ID!
     name: String!
     slug: String!
@@ -125,6 +125,7 @@ type Role {
   }
 
   type Org {
+    opus_id: ID!
     _id: ID!
     name: String!
     slug: String!
@@ -133,6 +134,8 @@ type Role {
   }
 
   type Tag {
+    opus_id: ID!
+
     _id: ID!
     name: String!
     slug: String!
@@ -140,6 +143,8 @@ type Role {
 
 
   type Involvement {
+    opus_id: ID!
+
     _id: ID!
     User: User @relation(name: "INVOLVEMENT", direction: "IN")
     Event: Event @relation(name: "INVOLVEMENT", direction: "OUT")
@@ -147,6 +152,8 @@ type Role {
   }
 
   type Instance {
+    opus_id: ID!
+
     _id: ID!
     Event: Event @relation(name: "HELD_ON", direction: "IN")
     Venue: Venue @relation(name: "HELD_AT", direction: "OUT")
@@ -162,12 +169,18 @@ type Role {
   }
 
   type Event {
+    opus_id: ID!
     _id: ID!
     title: String!
     slug: String!
     image_url: String
     published: Boolean
     organizer_desc: String
+    isPast: Boolean @cypher(statement:"""
+      MATCH (this)--(i:Instance)
+      WITH this, apoc.coll.sort(apoc.coll.union(collect(i.startDateTime), collect(i.endDateTime))) as dates
+      RETURN dates[-1] < datetime()
+    """)
     # start_datetime: Float
     # end_datetime: Float
     # startDateTime: DateTime

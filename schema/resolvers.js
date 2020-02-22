@@ -146,7 +146,6 @@ const resolvers = {
       const { email, password } = args;
       const userNode = await fetchUser(email, driver);
       if (!userNode) throw new Error("User does not exist");
-      // console.log(userNode);
       const validPassword = await checkPassword(password, userNode.hash);
       if (!validPassword) throw new Error("Invalid password");
       delete userNode.hash;
@@ -172,18 +171,6 @@ const resolvers = {
       const { email, newPasswordHash } = args;
       const userNode = await changePassword(email, newPasswordHash, driver);
       if (!userNode) throw new Error("User does not exist");
-      return JSON.stringify({
-        user: {
-          ...userNode
-        }
-      });
-    },
-    auth0GetUser: async (object, args, { driver }) => {
-      const { email } = args;
-      const userNode = await fetchUser(email, driver);
-      console.log(userNode);
-      if (!userNode) throw new Error("User does not exist");
-      delete userNode.hash;
       return JSON.stringify({
         user: {
           ...userNode
