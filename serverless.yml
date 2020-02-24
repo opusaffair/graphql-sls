@@ -13,6 +13,7 @@ custom:
 functions:
   graphql:
     handler: graphql.graphqlHandler
+    timeout: 45
     events:
       - http:
           path: /graphql
