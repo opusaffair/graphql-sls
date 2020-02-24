@@ -63,6 +63,21 @@ type Role {
       SET u.radius = c.radius
       RETURN 'Finished'
   """)
+    setPopularityScores: String @cypher(statement:"""
+      MATCH (this:Event)
+      OPTIONAL MATCH (this)<-[r]-(u:User)
+      OPTIONAL MATCH (this)<--(u)<-[:FOLLOWS]-(follower:User)
+      OPTIONAL MATCH (this)-[:HELD_ON]->(i:Instance)
+      WITH this, [x in collect(distinct r) | type(x)] as rsvps, COUNT(distinct follower) as fols, apoc.coll.sort(apoc.coll.union(collect(i.startDateTime),collect(i.endDateTime) )) as dates
+      WITH this, dates, apoc.coll.occurrences(rsvps,"INVOLVED_IN") as inv, apoc.coll.occurrences(rsvps,"ATTENDING") as att ,apoc.coll.occurrences(rsvps,"INTERESTED_IN") as int, fols, CASE 
+      WHEN dates[-1].epochSeconds-dates[0].epochSeconds > 604800
+      THEN (dates[-1].epochSeconds-dates[0].epochSeconds)/604800
+      ELSE 0
+      END as longRun
+      WITH this, inv*1000 + att*300 + int*100 + fols -100 * longRun as score
+      SET this.popularityScore = score
+      RETURN 'Finished'
+    """)
     login(email: String!, password: String!): String
     auth0Login(email: String!, password: String!): String
     auth0Create(email: String!, password: String!): String
@@ -176,9 +191,10 @@ type Role {
     image_url: String
     published: Boolean
     organizer_desc: String
+    popularityScore: Float
     isPast: Boolean @cypher(statement:"""
       MATCH (this)--(i:Instance)
-      WITH this, apoc.coll.sort(apoc.coll.union(collect(i.startDateTime), collect(i.endDateTime))) as dates
+      WITH this, apoc.coll.sort(collect(i.endDateTime)) as dates
       RETURN dates[-1] < datetime()
     """)
     # start_datetime: Float
@@ -187,12 +203,12 @@ type Role {
     # endDateTime: DateTime
     firstInstanceStartDateTimeString: String @cypher(statement: """
           MATCH (this)--(i:Instance)
-          WITH apoc.coll.sort(apoc.coll.union(collect(apoc.convert.toString(i.startDateTime)), collect(apoc.convert.toString(i.endDateTime)))) as dates
+          WITH apoc.coll.sort(collect(apoc.convert.toString(i.startDateTime))) as dates
           RETURN dates[0]
     """)
     lastInstanceEndDateTimeString: String @cypher(statement: """
         MATCH (this)--(i:Instance)
-        WITH apoc.coll.sort(apoc.coll.union(collect(apoc.convert.toString(i.startDateTime)), collect(apoc.convert.toString(i.endDateTime)))) as dates
+        WITH apoc.coll.sort(collect(apoc.convert.toString(i.endDateTime))) as dates
         RETURN dates[-1]
     """)
     display_daterange(showTime: Boolean = true, withYear: Boolean = true, longMonth: Boolean = true): String
