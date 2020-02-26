@@ -11,6 +11,9 @@ const isOwner = rule()(async (parent, args, { user }, info) => {
 });
 
 const isAdmin = rule()(async (parent, args, { user }, info) => {
+  console.log(
+    user.roles.includes("ADMIN") || user.roles.includes("ADMINISTRATOR")
+  );
   return user.roles.includes("ADMIN") || user.roles.includes("ADMINISTRATOR");
 });
 
@@ -22,10 +25,9 @@ const isAuth0 = rule()(async (parent, args, { user }, info) => {
   return user.roles.includes("AUTH0");
 });
 
-const isSelf = rule()(async (parent, args, ctx, info) => {
-  const idMatch = ctx.user._id === parent._id;
-  const emailMatch = ctx.user.email === parent.email;
-  return idMatch && emailMatch;
+const isSelf = rule()(async (parent, { email = null }, ctx, info) => {
+  const emailMatch = ctx.user.email === email;
+  return emailMatch;
 });
 
 const permissions = shield(
@@ -40,7 +42,9 @@ const permissions = shield(
       organizerNames: allow
     },
     Mutation: {
-      "*": or(isModerator, isAdmin, isAuth0),
+      CreateUser: or(isSelf, isAdmin, isModerator, isAuth0),
+      UpdateUser: or(isSelf, isAdmin, isModerator, isAuth0),
+      "*": or(isAdmin, isModerator, isAuth0),
       login: allow
     }
   },

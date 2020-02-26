@@ -118,10 +118,10 @@ const resolvers = {
   Mutation: {
     login: async (object, args, { driver }) => {
       const { email, password } = args;
-      const userNode = await fetchUser(email, driver);
-      if (!userNode) throw new Error("User does not exist");
-      const validPassword = await checkPassword(password, userNode.hash);
-      if (!validPassword) throw new Error("Invalid password");
+      // const userNode = await fetchUser(email, driver);
+      // if (!userNode) throw new Error("User does not exist");
+      // const validPassword = await checkPassword(password, userNode.hash);
+      // if (!validPassword) throw new Error("Invalid password");
 
       var options = {
         method: "POST",
@@ -130,8 +130,11 @@ const resolvers = {
         body: JSON.stringify({
           client_id: process.env.AUTH0_CLIENT_ID,
           client_secret: process.env.AUTH0_CLIENT_SECRET,
-          audience: "https://api.opusaffair.com/graphql",
-          grant_type: "client_credentials"
+          audience: process.env.AUTH0_API_IDENTIFIER,
+          grant_type: "password",
+          scope: "openid email",
+          username: email,
+          password: password
         })
       };
       // console.log(options);
@@ -139,8 +142,10 @@ const resolvers = {
         .then(res => res.json())
         .then(json => {
           console.log(json);
-          return json.access_token;
-        });
+          if (json.error) return new Error(json.error_description);
+          return json.id_token;
+        })
+        .catch(err => console.log(err));
     },
     auth0Login: async (object, args, { driver }) => {
       const { email, password } = args;

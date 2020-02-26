@@ -14,14 +14,9 @@ const typeDefs = `
     }
 
 type Role {
-  name: String!
+  name: RoleName!
   users: [User] @relation(name: "HAS_ROLE", direction: "IN")
 }
-
-    extend type Event {
-      createdAt: Float
-      updatedAt: Float
-    }
 
   type Query {
     """
@@ -88,6 +83,8 @@ type Role {
   type User {
     opus_id: ID!
     _id: ID!
+    createdAt: DateTime
+    updatedAt: DateTime
     username: String!
     slug: String @cypher(statement: "RETURN this.username")
     password_hash: String!
@@ -108,28 +105,30 @@ type Role {
     website: String
     twitter: String
     facebook: String
-    Involvement: [Involvement]  @relation(name: "INVOLVEMENT", direction: "OUT")
-    attending: [Event] @relation(name: "ATTENDING", direction: "OUT")
-    interested_in: [Event] @relation(name: "INTERESTED_IN", direction: "OUT")
-    involved_in: [Event] @relation(name: "INVOLVED_IN", direction: "OUT")
+    events: [Response]  @relation(name: "RESPONDED", direction: "OUT")
     emailSubOpusEvents: Boolean
     emailSubWeeklyCal: Boolean
     emailSubOffers: Boolean
-    bacon_number: Float @cypher(statement: """
-      Match (u:User)
-      WHERE u.username <> this.username
-      Match p=shortestPath((this)-[*1..3:INVOLVED_IN]-(u)) 
-      Return avg(length(p)) as bacon
-    """)
     followedByUser(email: String = ""): Boolean @cypher(statement: """
       MATCH (me:User {email: toLower($email)})
       RETURN EXISTS ((me)-[:FOLLOWS]->(this))
     """) 
   } 
 
+  type Response {
+    status: String
+    how: String
+    createdAt: DateTime
+    updatedAt: DateTime
+    User: User @relation(name: "RESPONDED", direction: "IN")
+    Event: Event @relation(name: "RESPONDED_TO", direction: "OUT")
+  }
+
   type Venue {
     opus_id: ID!
     _id: ID!
+    createdAt: DateTime
+    updatedAt: DateTime
     name: String!
     slug: String!
     location: Point
@@ -142,6 +141,8 @@ type Role {
   type Org {
     opus_id: ID!
     _id: ID!
+    createdAt: DateTime
+    updatedAt: DateTime
     name: String!
     slug: String!
     website: String
@@ -150,26 +151,18 @@ type Role {
 
   type Tag {
     opus_id: ID!
-
+    createdAt: DateTime
+    updatedAt: DateTime
     _id: ID!
     name: String!
     slug: String!
   }
 
-
-  type Involvement {
-    opus_id: ID!
-
-    _id: ID!
-    User: User @relation(name: "INVOLVEMENT", direction: "IN")
-    Event: Event @relation(name: "INVOLVEMENT", direction: "OUT")
-    how: String
-  }
-
   type Instance {
     opus_id: ID!
-
     _id: ID!
+    createdAt: DateTime
+    updatedAt: DateTime
     Event: Event @relation(name: "HELD_ON", direction: "IN")
     Venue: Venue @relation(name: "HELD_AT", direction: "OUT")
     Tag: Tag @relation(name: "TAGGED", direction: "IN")
@@ -186,6 +179,8 @@ type Role {
   type Event {
     opus_id: ID!
     _id: ID!
+    createdAt: DateTime
+    updatedAt: DateTime
     title: String!
     slug: String!
     image_url: String
@@ -224,7 +219,7 @@ type Role {
       """)
     members_connected: [User] @cypher(statement: "MATCH (this)--(u:User) RETURN u")
     members_connected_count: Int @cypher(statement: "MATCH (this)--(u:User) RETURN count(distinct u)")
-    Involvement: [Involvement]  @relation(name: "INVOLVEMENT", direction: "IN")
+    users: [Response]  @relation(name: "RESPONDED_TO", direction: "IN")
     involved_in: [User] @relation(name: "INVOLVED_IN", direction: "IN")
     interested: [User] @relation(name: "INTERESTED_IN", direction: "IN")
     attending: [User] @relation(name: "ATTENDING", direction: "IN")
