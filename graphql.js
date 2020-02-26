@@ -10,7 +10,11 @@ const { promisify } = require("util");
 const jwksClient = require("jwks-rsa");
 const jwt = require("jsonwebtoken");
 const { checkBasicAuth } = require("./utils/utils");
-const { autoCreatedAt, autoUpdatedAt } = require("./schema/middleware");
+const {
+  autoCreatedAt,
+  autoUpdatedAt,
+  autoCreateDefaults
+} = require("./schema/middleware");
 
 const schema = applyMiddleware(
   makeAugmentedSchema({
@@ -19,7 +23,8 @@ const schema = applyMiddleware(
   }),
   permissions,
   autoCreatedAt,
-  autoUpdatedAt
+  autoUpdatedAt,
+  autoCreateDefaults
 );
 
 async function getToken(event) {

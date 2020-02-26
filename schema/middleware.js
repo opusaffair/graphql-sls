@@ -1,3 +1,5 @@
+const { v4: uuid } = require("uuid");
+
 const appendCreatedAt = (r, p, a, c, i) => {
   const formatted = new Date().toISOString();
   a.createdAt = { formatted };
@@ -8,6 +10,16 @@ const appendUpdatedAt = (r, p, a, c, i) => {
   const formatted = new Date().toISOString();
   a.updatedAt = { formatted };
   a.updatedBy = c.user.email;
+  return r(p, a, c, i);
+};
+
+const handleCreateUserDefaults = (r, p, a, c, i) => {
+  //If no username provided, set username and opus_id to same UUID
+  if (!a.username) {
+    const id = uuid();
+    a.username = id;
+    a.opus_id = id;
+  }
   return r(p, a, c, i);
 };
 
@@ -46,4 +58,9 @@ const autoUpdatedAt = {
   }
 };
 
-module.exports = { autoUpdatedAt, autoCreatedAt };
+const autoCreateDefaults = {
+  Mutation: {
+    CreateUser: handleCreateUserDefaults
+  }
+};
+module.exports = { autoUpdatedAt, autoCreatedAt, autoCreateDefaults };

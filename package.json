@@ -18,7 +18,8 @@
     "neo4j-graphql-js": "^2.11.0",
     "node-fetch": "^2.6.0",
     "serverless-dotenv-plugin": "^2.3.1",
-    "util": "^0.12.1"
+    "util": "^0.12.1",
+    "uuid": "^7.0.1"
   },
   "devDependencies": {
     "serverless-offline": "^5.12.1"

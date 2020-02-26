@@ -45,7 +45,8 @@ const permissions = shield(
     }
   },
   {
-    fallbackRule: allow
+    fallbackRule: allow,
+    allowExternalErrors: true
   }
 );
 
