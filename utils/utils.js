@@ -11,7 +11,8 @@ async function fetchUser(email, driver) {
       SET u.last_seen=datetime().epochSeconds 
       RETURN {user:{
         nickname:u.username, 
-        user_id:toString(ID(u)), 
+        user_id:u.opus_id,
+        opus_id:u.opus_id, 
         email:u.email, 
         picture: u.avatar_url,
         name: u.name_first + ' ' + u.name_last,
@@ -47,8 +48,9 @@ async function verifyUser(email, driver) {
       SET u.confirmed = true 
       RETURN {user:{
         nickname:u.username, 
-        user_id:toString(ID(u)), 
+        user_id:u.opus_id, 
         email:u.email, 
+        opus_id:u.opus_id, 
         picture: u.avatar_url,
         name: u.name_first + ' ' + u.name_last,
         hash: u.password_hash,
@@ -77,8 +79,9 @@ async function changePassword(email, newPassword, driver) {
       SET u.password_hash = $newPassword 
       RETURN {user:{
         nickname:u.username, 
-        user_id:toString(ID(u)), 
-        email:u.email, 
+        user_id: u.opus_id, 
+        email: u.email, 
+        opus_id:u.opus_id, 
         picture: u.avatar_url,
         name: u.name_first + ' ' + u.name_last,
         hash: u.password_hash,

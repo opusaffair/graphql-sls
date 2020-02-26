@@ -6,8 +6,8 @@ const appendCreatedAt = (r, p, a, c, i) => {
 
 const appendUpdatedAt = (r, p, a, c, i) => {
   const formatted = new Date().toISOString();
-  console.log(c.user);
   a.updatedAt = { formatted };
+  a.updatedBy = c.user.email;
   return r(p, a, c, i);
 };
 

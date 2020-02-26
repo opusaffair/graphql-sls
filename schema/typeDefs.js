@@ -85,6 +85,7 @@ type Role {
     _id: ID!
     createdAt: DateTime
     updatedAt: DateTime
+    updatedBy: String
     username: String!
     slug: String @cypher(statement: "RETURN this.username")
     password_hash: String!
@@ -120,6 +121,7 @@ type Role {
     how: String
     createdAt: DateTime
     updatedAt: DateTime
+    updatedBy: String
     User: User @relation(name: "RESPONDED", direction: "IN")
     Event: Event @relation(name: "RESPONDED_TO", direction: "OUT")
   }
@@ -129,6 +131,7 @@ type Role {
     _id: ID!
     createdAt: DateTime
     updatedAt: DateTime
+    updatedBy: String
     name: String!
     slug: String!
     location: Point
@@ -143,6 +146,7 @@ type Role {
     _id: ID!
     createdAt: DateTime
     updatedAt: DateTime
+    updatedBy: String
     name: String!
     slug: String!
     website: String
@@ -153,6 +157,7 @@ type Role {
     opus_id: ID!
     createdAt: DateTime
     updatedAt: DateTime
+    updatedBy: String
     _id: ID!
     name: String!
     slug: String!
@@ -163,6 +168,7 @@ type Role {
     _id: ID!
     createdAt: DateTime
     updatedAt: DateTime
+    updatedBy: String
     Event: Event @relation(name: "HELD_ON", direction: "IN")
     Venue: Venue @relation(name: "HELD_AT", direction: "OUT")
     Tag: Tag @relation(name: "TAGGED", direction: "IN")
@@ -181,6 +187,7 @@ type Role {
     _id: ID!
     createdAt: DateTime
     updatedAt: DateTime
+    updatedBy: String
     title: String!
     slug: String!
     image_url: String

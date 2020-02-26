@@ -11,9 +11,6 @@ const isOwner = rule()(async (parent, args, { user }, info) => {
 });
 
 const isAdmin = rule()(async (parent, args, { user }, info) => {
-  console.log(
-    user.roles.includes("ADMIN") || user.roles.includes("ADMINISTRATOR")
-  );
   return user.roles.includes("ADMIN") || user.roles.includes("ADMINISTRATOR");
 });
 
@@ -42,7 +39,6 @@ const permissions = shield(
       organizerNames: allow
     },
     Mutation: {
-      CreateUser: or(isSelf, isAdmin, isModerator, isAuth0),
       UpdateUser: or(isSelf, isAdmin, isModerator, isAuth0),
       "*": or(isAdmin, isModerator, isAuth0),
       login: allow
