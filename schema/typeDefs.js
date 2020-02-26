@@ -14,7 +14,7 @@ const typeDefs = `
     }
 
 type Role {
-  name: RoleName!
+  name: String!
   users: [User] @relation(name: "HAS_ROLE", direction: "IN")
 }
 
