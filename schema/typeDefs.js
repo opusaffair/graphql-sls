@@ -27,6 +27,7 @@ type Role {
     me: String
     ctx: String
     currentUser: User @cypher(statement:"MATCH (this {email:$cypherParams.currentUser.email}) RETURN this")
+    eventDetail(slug: String): Event @cypher(statement: "MATCH (this:Event {slug:$slug}) RETURN this")
   }
 
   type Mutation {

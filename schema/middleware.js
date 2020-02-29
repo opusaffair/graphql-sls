@@ -3,6 +3,7 @@ const { v4: uuid } = require("uuid");
 const appendCreatedAt = (r, p, a, c, i) => {
   const formatted = new Date().toISOString();
   a.createdAt = { formatted };
+  a.updatedAt = { formatted };
   return r(p, a, c, i);
 };
 
@@ -19,6 +20,7 @@ const handleCreateUserDefaults = (r, p, a, c, i) => {
     const id = uuid();
     a.username = id;
     a.opus_id = id;
+    a.viewable = false;
   }
   return r(p, a, c, i);
 };
