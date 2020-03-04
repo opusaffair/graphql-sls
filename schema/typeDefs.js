@@ -136,6 +136,10 @@ type Role {
     name: String!
     slug: String!
     location: Point
+    address: String
+    city: String
+    state: String
+    country: String
     timezone: String
     latitude: Float
     longitude: Float

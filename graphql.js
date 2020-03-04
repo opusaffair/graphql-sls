@@ -21,7 +21,7 @@ const schema = applyMiddleware(
     typeDefs,
     resolvers
   }),
-  permissions,
+  // permissions,
   autoCreatedAt,
   autoUpdatedAt,
   autoCreateDefaults
