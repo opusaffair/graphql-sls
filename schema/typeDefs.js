@@ -60,19 +60,20 @@ type Role {
       RETURN 'Finished'
   """)
     setPopularityScores: String @cypher(statement:"""
-      MATCH (this:Event)
-      OPTIONAL MATCH (this)<-[r]-(u:User)
-      OPTIONAL MATCH (this)<--(u)<-[:FOLLOWS]-(follower:User)
-      OPTIONAL MATCH (this)-[:HELD_ON]->(i:Instance)
-      WITH this, [x in collect(distinct r) | type(x)] as rsvps, COUNT(distinct follower) as fols, apoc.coll.sort(apoc.coll.union(collect(i.startDateTime),collect(i.endDateTime) )) as dates
-      WITH this, dates, apoc.coll.occurrences(rsvps,"INVOLVED_IN") as inv, apoc.coll.occurrences(rsvps,"ATTENDING") as att ,apoc.coll.occurrences(rsvps,"INTERESTED_IN") as int, fols, CASE 
-      WHEN dates[-1].epochSeconds-dates[0].epochSeconds > 604800
-      THEN (dates[-1].epochSeconds-dates[0].epochSeconds)/604800
-      ELSE 0
-      END as longRun
-      WITH this, inv*1000 + att*300 + int*100 + fols -100 * longRun as score
-      SET this.popularityScore = score
-      RETURN 'Finished'
+    MATCH (this:Event)
+    OPTIONAL MATCH (this)<-[r]-(u:User)
+    OPTIONAL MATCH (this)<--(u)<-[:FOLLOWS]-(follower:User)
+    OPTIONAL MATCH (this)-[:HELD_ON]->(i:Instance)
+    WITH this, [x in collect(distinct r) | type(x)] as rsvps, COUNT(distinct follower) as fols, apoc.coll.sort(apoc.coll.union(collect(i.startDateTime),collect(i.endDateTime) )) as dates
+    WITH this, dates, apoc.coll.occurrences(rsvps,"INVOLVED_IN") as inv, apoc.coll.occurrences(rsvps,"ATTENDING") as att ,apoc.coll.occurrences(rsvps,"INTERESTED_IN") as int, fols,
+    CASE 
+    WHEN dates[-1].epochSeconds-dates[0].epochSeconds > 604800
+    THEN (dates[-1].epochSeconds-dates[0].epochSeconds)/604800
+    ELSE 0
+    END as longRun
+    WITH this, inv*1000+att*300+int*100-longRun*300+fols as score
+    SET this.popularityScore = score
+    RETURN 'finished'
     """)
     login(email: String!, password: String!): String
     auth0Login(email: String!, password: String!): String
@@ -185,6 +186,10 @@ type Role {
     # startTime: String
     note: String
     override_url: String
+    isNearMe(latitude: Float = 42.3601, longitude: Float = -71.058, range: Float = 7000): Boolean @cypher(statement:"""
+      Match (this)
+      Return distance(point({latitude:this.latitude, longitude:this.longitude}), point({latitude:$latitude, longitude:$longitude})) < $range
+      """)
   }
 
   type Event {
@@ -197,6 +202,7 @@ type Role {
     slug: String!
     image_url: String
     published: Boolean
+    alert: String
     organizer_desc: String
     popularityScore: Float
     isPast: Boolean @cypher(statement:"""
@@ -218,6 +224,7 @@ type Role {
         WITH apoc.coll.sort(collect(apoc.convert.toString(i.endDateTime))) as dates
         RETURN dates[-1]
     """)
+    instanceCount: Float @cypher(statement:"MATCH (this)-->(i:Instance) RETURN count(distinct i)")
     display_daterange(showTime: Boolean = true, withYear: Boolean = true, longMonth: Boolean = true): String
     displayInstanceDaterange(showTime: Boolean = true, withYear: Boolean = true, longMonth: Boolean = true): String
     Venue: [Venue] @relation(name: "HELD_AT", direction: "OUT")
@@ -288,8 +295,9 @@ type Role {
       @cypher(statement: """
       MATCH (me:User {email: $email})
       Optional MATCH folInv=((this)<-[:INVOLVED_IN]-(:User)<-[r3:FOLLOWS]-(me))
-      Optional MATCH tagsVenuesAndOrgs=((this)-[:HELD_AT|ORGANIZES|TAGGED]-(x)-[:HELD_AT|ORGANIZES|TAGGED]-(:Event)<--(me))
-      RETURN 10*count(folInv) + count(tagsVenuesAndOrgs)
+      Optional MATCH selfConnected=((this)<-[:INTERESTED_IN|ATTENDING|INVOLVED_IN]-(me))
+      Optional MATCH tagsVenuesAndOrgs=((this)-[:HELD_AT|ORGANIZES]-(x)-[:HELD_AT|ORGANIZES]-(:Event)<--(me))
+      RETURN 1000*count(distinct selfConnected)+2000*count(distinct folInv) + 1*count(distinct tagsVenuesAndOrgs) + this.popularityScore
       """)
   }
 `;

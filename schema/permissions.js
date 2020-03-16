@@ -22,8 +22,8 @@ const isAuth0 = rule()(async (parent, args, { user }, info) => {
   return user.roles.includes("AUTH0");
 });
 
-const isSelf = rule()(async (parent, { email = null }, ctx, info) => {
-  const emailMatch = ctx.user.email === email;
+const isSelf = rule()(async ({ email }, args, ctx, info) => {
+  const emailMatch = !!ctx.user.email && ctx.user.email === email;
   return emailMatch;
 });
 

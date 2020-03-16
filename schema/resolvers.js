@@ -145,7 +145,7 @@ const resolvers = {
           if (json.error) return new Error(json.error_description);
           return json.id_token;
         })
-        .catch(err => console.log(err, err.extensions.stacktrace));
+        .catch(err => console.log(err));
     },
     auth0Login: async (object, args, { driver }) => {
       const { email, password } = args;

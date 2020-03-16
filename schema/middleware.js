@@ -25,6 +25,16 @@ const handleCreateUserDefaults = (r, p, a, c, i) => {
   return r(p, a, c, i);
 };
 
+const handleCreateOrgDefaults = (r, p, a, c, i) => {
+  //If no username provided, set username and opus_id to same UUID
+  if (!a.slug) {
+    const id = uuid();
+    a.slug = id;
+    a.opus_id = id;
+  }
+  return r(p, a, c, i);
+};
+
 const autoCreatedAt = {
   Query: {},
   Mutation: {
@@ -62,7 +72,8 @@ const autoUpdatedAt = {
 
 const autoCreateDefaults = {
   Mutation: {
-    CreateUser: handleCreateUserDefaults
+    CreateUser: handleCreateUserDefaults,
+    CreateOrg: handleCreateOrgDefaults
   }
 };
 module.exports = { autoUpdatedAt, autoCreatedAt, autoCreateDefaults };
