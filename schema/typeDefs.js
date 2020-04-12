@@ -210,8 +210,8 @@ type Role {
       WITH this, apoc.coll.sort(collect(i.endDateTime)) as dates
       RETURN dates[-1] < datetime()
     """)
-    # start_datetime: Float
-    # end_datetime: Float
+    start_datetime: Float
+    end_datetime: Float
     # startDateTime: DateTime
     # endDateTime: DateTime
     firstInstanceStartDateTimeString: String @cypher(statement: """
