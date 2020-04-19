@@ -5,13 +5,13 @@ const {
   fetchUser,
   checkPassword,
   verifyUser,
-  changePassword
+  changePassword,
 } = require("../utils/utils");
 const fetch = require("node-fetch");
 // var { DateTime } = require("luxon");
 const {
   renderFormattedDateRange,
-  getTimeZoneFromLocation
+  getTimeZoneFromLocation,
 } = require("../utils/dateUtils");
 
 // Provide resolver functions for your schema fields
@@ -19,7 +19,7 @@ const resolvers = {
   Query: {
     hello: (obj, args, ctx, info) => "Hello world!",
     me: (obj, args, { user }, info) => JSON.stringify(user),
-    ctx: (obj, arts, ctx, info) => `USER: ${JSON.stringify(ctx.user)}`
+    ctx: (obj, arts, ctx, info) => `USER: ${JSON.stringify(ctx.user)}`,
   },
   Venue: {
     // getTz: async ({ location }) => {
@@ -45,40 +45,43 @@ const resolvers = {
       }
       return oxfordJoin(organizerNames, conjunction, oxfordComma);
     },
-    display_daterange: (
-      { _id },
-      { withYear, longMonth, showTime },
-      { driver },
-      resolveInfo
-    ) => {
-      const session = driver.session();
-      const resultPromise = session.writeTransaction(tx =>
-        tx.run(
-          `
-      MATCH (this:Event) 
-      WHERE ID(this) = $id 
-      WITH this.startDateTime as start, this.endDateTime as end
-      RETURN {start: apoc.convert.toString(start), end: apoc.convert.toString(end)} as res `,
-          { id: _id }
-        )
-      );
-      return resultPromise.then(result => {
-        session.close();
-        const singleRecord = result.records[0];
-        const dates = singleRecord ? singleRecord.get(0) : null;
-        const regex = /\[(.*)\]/gm;
-        const timeZone = regex.exec(dates.start)[1];
-        const formattedDateRange = renderFormattedDateRange(
-          dates.start,
-          dates.end,
-          timeZone,
-          withYear,
-          longMonth,
-          showTime
-        );
-        return formattedDateRange;
-      });
-    },
+    // display_daterange: (
+    //   { _id },
+    //   { withYear, longMonth, showTime },
+    //   { driver },
+    //   resolveInfo
+    // ) => {
+    //   const session = driver.session();
+    //   const resultPromise = session.writeTransaction((tx) =>
+    //     tx.run(
+    //       `
+    //   MATCH (this:Event)
+    //   WHERE ID(this) = toInt($id)
+    //   WITH datetime({epochSeconds:toInt(this.start_datetime)}) as start, datetime({epochSeconds:toInt(this.end_datetime)}) as end
+    //   RETURN {start: apoc.convert.toString(start), end: apoc.convert.toString(end)} as res `,
+    //       { id: _id }
+    //     )
+    //   );
+    //   return resultPromise.then((result) => {
+    //     session.close();
+    //     const singleRecord = result.records[0];
+    //     if (!singleRecord) return null;
+    //     const dates = singleRecord ? singleRecord.get(0) : null;
+    //     console.log(dates);
+    //     const regex = /\[(.*)\]/gm;
+    //     const timeZone =
+    //       (regex.exec(dates.start) && regex.exec(dates.start)[1]) || "UTC";
+    //     const formattedDateRange = renderFormattedDateRange(
+    //       dates.start,
+    //       dates.end,
+    //       timeZone,
+    //       withYear,
+    //       longMonth,
+    //       showTime
+    //     );
+    //     return formattedDateRange;
+    //   });
+    // },
     displayInstanceDaterange: (
       { _id },
       { withYear, longMonth, showTime },
@@ -86,7 +89,7 @@ const resolvers = {
       resolveInfo
     ) => {
       const session = driver.session();
-      const resultPromise = session.writeTransaction(tx =>
+      const resultPromise = session.writeTransaction((tx) =>
         tx.run(
           `
           MATCH (this)--(i:Instance)
@@ -96,7 +99,7 @@ const resolvers = {
           { id: _id }
         )
       );
-      return resultPromise.then(result => {
+      return resultPromise.then((result) => {
         session.close();
         const singleRecord = result.records[0];
         if (!singleRecord) return null;
@@ -113,7 +116,7 @@ const resolvers = {
         );
         return formattedDateRange;
       });
-    }
+    },
   },
   Mutation: {
     login: async (object, args, { driver }) => {
@@ -134,18 +137,18 @@ const resolvers = {
           grant_type: "password",
           scope: "openid email",
           username: email,
-          password: password
-        })
+          password: password,
+        }),
       };
       // console.log(options);
       return fetch("https://opusaffair.auth0.com/oauth/token", options)
-        .then(res => res.json())
-        .then(json => {
+        .then((res) => res.json())
+        .then((json) => {
           console.log(json);
           if (json.error) return new Error(json.error_description);
           return json.id_token;
         })
-        .catch(err => console.log(err));
+        .catch((err) => console.log(err));
     },
     auth0Login: async (object, args, { driver }) => {
       const { email, password } = args;
@@ -156,8 +159,8 @@ const resolvers = {
       delete userNode.hash;
       return JSON.stringify({
         user: {
-          ...userNode
-        }
+          ...userNode,
+        },
       });
     },
     auth0Verify: async (object, args, { driver }) => {
@@ -168,8 +171,8 @@ const resolvers = {
       delete userNode.hash;
       return JSON.stringify({
         user: {
-          ...userNode
-        }
+          ...userNode,
+        },
       });
     },
     auth0ChangePassword: async (object, args, { driver }) => {
@@ -178,11 +181,11 @@ const resolvers = {
       if (!userNode) throw new Error("User does not exist");
       return JSON.stringify({
         user: {
-          ...userNode
-        }
+          ...userNode,
+        },
       });
-    }
-  }
+    },
+  },
 };
 
 module.exports = resolvers;

@@ -140,6 +140,7 @@ type Role {
     address: String
     city: String
     state: String
+    zip_code: String
     country: String
     timezone: String
     latitude: Float
@@ -201,6 +202,7 @@ type Role {
     title: String!
     slug: String!
     image_url: String
+    ticket_link: String
     published: Boolean
     alert: String
     organizer_desc: String
@@ -225,7 +227,7 @@ type Role {
         RETURN dates[-1]
     """)
     instanceCount: Float @cypher(statement:"MATCH (this)-->(i:Instance) RETURN count(distinct i)")
-    display_daterange(showTime: Boolean = true, withYear: Boolean = true, longMonth: Boolean = true): String
+    # display_daterange(showTime: Boolean = true, withYear: Boolean = true, longMonth: Boolean = true): String
     displayInstanceDaterange(showTime: Boolean = true, withYear: Boolean = true, longMonth: Boolean = true): String
     Venue: [Venue] @relation(name: "HELD_AT", direction: "OUT")
     Instance: [Instance] @relation(name: "HELD_ON", direction: "OUT")

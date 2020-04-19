@@ -6,14 +6,14 @@ function getTimeZoneFromLocation(lat, lng) {
   const url = `http://api.timezonedb.com/v2.1/get-time-zone?key=${key}&format=json&by=position&lat=${lat}&lng=${lng}`;
 
   return fetch(url)
-    .then(res => {
+    .then((res) => {
       return res.json();
     })
-    .then(json => {
+    .then((json) => {
       console.log(json.zoneName);
       return json.zoneName;
     })
-    .catch(err => {
+    .catch((err) => {
       console.log(err);
       return null;
     });
@@ -28,11 +28,10 @@ async function renderFormattedDateRange(
   showTime = true
 ) {
   let start = DateTime.fromISO(startNEO4J.slice(0, 16), {
-    zone: timeZone
+    zone: timeZone,
   });
-
   let end = DateTime.fromISO(endNEO4J.slice(0, 16), {
-    zone: timeZone
+    zone: timeZone,
   });
   let startFormat = { day: "numeric" };
   let endFormat = { day: "numeric" };
