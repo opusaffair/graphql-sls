@@ -203,6 +203,7 @@ type Role {
     supertitle_creative: String
     slug: String!
     image_url: String
+    photo_cred: String
     ticket_link: String
     published: Boolean
     alert: String
