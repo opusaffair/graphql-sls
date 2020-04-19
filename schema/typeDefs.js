@@ -200,7 +200,7 @@ type Role {
     updatedAt: DateTime
     updatedBy: String
     title: String!
-    supertitle: String
+    supertitle_creative: String
     slug: String!
     image_url: String
     ticket_link: String
