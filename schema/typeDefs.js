@@ -216,6 +216,7 @@ type Role {
     """)
     start_datetime: Float
     end_datetime: Float
+    last_modified: Float
     # startDateTime: DateTime
     # endDateTime: DateTime
     firstInstanceStartDateTimeString: String @cypher(statement: """
