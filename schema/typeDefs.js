@@ -168,6 +168,7 @@ type Role {
     _id: ID!
     name: String!
     slug: String!
+    category: String
   }
 
   type Instance {
