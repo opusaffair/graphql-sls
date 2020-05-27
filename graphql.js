@@ -13,13 +13,13 @@ const { checkBasicAuth } = require("./utils/utils");
 const {
   autoCreatedAt,
   autoUpdatedAt,
-  autoCreateDefaults
+  autoCreateDefaults,
 } = require("./schema/middleware");
 
 const schema = applyMiddleware(
   makeAugmentedSchema({
     typeDefs,
-    resolvers
+    resolvers,
   }),
   permissions,
   autoCreatedAt,
@@ -45,7 +45,7 @@ async function getPublicKey(kid) {
     cache: true,
     rateLimit: true,
     jwksRequestsPerMinute: 5,
-    jwksUri: `https://${process.env.AUTH0_DOMAIN}/.well-known/jwks.json`
+    jwksUri: `https://${process.env.AUTH0_DOMAIN}/.well-known/jwks.json`,
   });
   const getSigningKey = promisify(client.getSigningKey);
   const key = await getSigningKey(kid || process.env.AUTH0_KID);
@@ -74,7 +74,7 @@ async function makeDriver() {
     process.env.NEO4J_URI,
     neo4j.auth.basic(process.env.NEO4J_USERNAME, process.env.NEO4J_PASSWORD),
     {
-      encrypted: "ENCRYPTION_ON"
+      encrypted: "ENCRYPTION_ON",
     }
   );
 }
@@ -83,11 +83,11 @@ const server = new ApolloServer({
   schema,
   engine: {
     // The Graph Manager API key
-    apiKey: process.env.ENGINE_API_KEY,
+    // apiKey: process.env.ENGINE_API_KEY,
     // A tag for this specific environment (e.g. `development` or `production`).
     // For more information on schema tags/variants, see
     // https://www.apollographql.com/docs/platform/schema-registry/#associating-metrics-with-a-variant
-    schemaTag: process.env.STAGE || "dev"
+    schemaTag: process.env.STAGE || "dev",
   },
   context: async ({ event, context }) => {
     const token = await getToken(event);
@@ -109,25 +109,25 @@ const server = new ApolloServer({
       event,
       user,
       cypherParams: {
-        currentUser: user
-      }
+        currentUser: user,
+      },
     };
   },
-  formatError: error => {
+  formatError: (error) => {
     console.log(error);
     return error;
   },
-  formatResponse: response => {
+  formatResponse: (response) => {
     // console.log(response);
     return response;
   },
   tracing: true,
-  playground: true
+  playground: true,
 });
 
 exports.graphqlHandler = server.createHandler({
   cors: {
     origin: "*",
-    credentials: true
-  }
+    credentials: true,
+  },
 });
