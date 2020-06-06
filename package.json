@@ -5,7 +5,7 @@
   "license": "MIT",
   "dependencies": {
     "apollo-server": "^2.10.0",
-    "apollo-server-lambda": "^2.9.14",
+    "apollo-server-lambda": "^2.14.2",
     "bcryptjs": "^2.4.3",
     "graphql": "^14.5.8",
     "graphql-auth-directives": "^2.1.0",
