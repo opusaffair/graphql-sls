@@ -242,6 +242,10 @@ type Role {
       MATCH (this)<-[:ORGANIZES]-(org:Org)
       RETURN COLLECT(org.name)
       """)
+    venueNames(conjunction:String = "and", oxfordComma:Boolean = true): String @cypher(statement:"""
+      MATCH (this)-[:HELD_AT]->(v:Venue)
+      RETURN COLLECT(v.name)
+      """)
     members_connected: [User] @cypher(statement: "MATCH (this)--(u:User) RETURN u")
     members_connected_count: Int @cypher(statement: "MATCH (this)--(u:User) RETURN count(distinct u)")
     users: [Response]  @relation(name: "RESPONDED_TO", direction: "IN")

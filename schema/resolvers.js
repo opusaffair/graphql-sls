@@ -45,6 +45,23 @@ const resolvers = {
       }
       return oxfordJoin(organizerNames, conjunction, oxfordComma);
     },
+    venueNames: ({ venueNames }, { conjunction, oxfordComma }) => {
+      function oxfordJoin(
+        arr = [],
+        conjunction = "and",
+        oxford = true,
+        ifempty = ""
+      ) {
+        let l = arr.length;
+        if (!l) return ifempty;
+        if (l < 2) return arr[0];
+        if (l < 3) return arr.join(` ${conjunction} `);
+        arr = arr.slice();
+        const lastSpacer = `${oxford ? ", " : " "}${conjunction} `;
+        return arr.slice(0, -1).join(", ") + lastSpacer + arr.slice(-1);
+      }
+      return oxfordJoin(venueNames, conjunction, oxfordComma);
+    },
     // display_daterange: (
     //   { _id },
     //   { withYear, longMonth, showTime },
