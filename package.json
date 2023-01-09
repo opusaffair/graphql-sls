@@ -13,7 +13,7 @@
     "graphql-shield": "^7.0.10",
     "isemail": "^3.2.0",
     "jwks-rsa": "^1.6.2",
-    "luxon": "^1.22.0",
+    "luxon": "^1.28.1",
     "neo4j-driver": "^4.0.1",
     "neo4j-graphql-js": "^2.11.0",
     "node-fetch": "^2.6.0",
